@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check Point &rarr; Panorama Migration Tool</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --cp-red:    #cc0000;
+      --pan-blue:  #0066cc;
+      --pan-dark:  #003d7a;
+      --warn-amber:#e6a817;
+    }
+
+    body { background: #f5f7fa; }
+
+    .navbar-brand .cp { color: var(--cp-red); font-weight: 700; }
+    .navbar-brand .arrow { color: #888; }
+    .navbar-brand .pan { color: var(--pan-blue); font-weight: 700; }
+
+    .card { box-shadow: 0 2px 6px rgba(0,0,0,.08); border: 1px solid #dde3ec; }
+    .card-header { background: var(--pan-dark); color: #fff; font-weight: 600; }
+    .card-header .bi { margin-right: .4em; }
+
+    .status-ok   { color: #198754; }
+    .status-warn { color: var(--warn-amber); }
+    .status-miss { color: #dc3545; }
+
+    #convertBtn {
+      font-size: 1.15rem;
+      padding: .65rem 2.5rem;
+      background: var(--pan-blue);
+      border-color: var(--pan-blue);
+    }
+    #convertBtn:hover { background: var(--pan-dark); border-color: var(--pan-dark); }
+    #convertBtn:disabled { opacity: .65; }
+
+    #dropzone {
+      border: 2px dashed #aab;
+      border-radius: 8px;
+      padding: 1.8rem;
+      text-align: center;
+      color: #667;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    #dropzone.drag-over { background: #e8f0fc; border-color: var(--pan-blue); }
+    #dropzone.has-file  { background: #e8f7ee; border-color: #198754; color: #155724; }
+
+    #xmlPreview {
+      font-family: 'Courier New', monospace;
+      font-size: .77rem;
+      white-space: pre;
+      overflow-x: auto;
+      max-height: 320px;
+      background: #1e1e2e;
+      color: #cdd6f4;
+      border-radius: 6px;
+      padding: 1rem;
+    }
+
+    .report-card { border-left: 4px solid var(--pan-blue); }
+    .report-card.has-errors { border-color: #dc3545; }
+    .report-card.has-warnings { border-color: var(--warn-amber); }
+
+    .spinner-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 1055;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    .spinner-overlay.active { display: flex; }
+    .spinner-text { color: #fff; margin-top: 1rem; font-size: 1.1rem; }
+
+    .table-vs td, .table-vs th { vertical-align: middle; }
+
+    .iface-row input { font-family: monospace; }
+
+    details > summary { cursor: pointer; user-select: none; }
+
+    .badge-count { font-size: .7rem; vertical-align: middle; }
+
+    /* Drag handle visual */
+    #dropzone .bi-cloud-upload { font-size: 2.5rem; display: block; color: #aab; }
+  </style>
+</head>
+<body>
+
+<!-- Spinner overlay -->
+<div class="spinner-overlay" id="spinnerOverlay">
+  <div class="spinner-border text-light" role="status" style="width:3.5rem;height:3.5rem;">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+  <div class="spinner-text" id="spinnerText">Converting&hellip;</div>
+</div>
+
+<!-- Navbar -->
+<nav class="navbar navbar-dark" style="background:var(--pan-dark);">
+  <div class="container-fluid">
+    <span class="navbar-brand fs-5">
+      <i class="bi bi-shield-shaded"></i>
+      <span class="cp">Check Point</span>
+      <span class="arrow"> &rarr; </span>
+      <span class="pan">Panorama</span>
+      <span class="text-white-50 fw-normal fs-6 ms-2">Migration Tool</span>
+    </span>
+    <span class="text-white-50 small" id="tapDirLabel"></span>
+  </div>
+</nav>
+
+<div class="container-xl py-4">
+
+  <!-- Alert area -->
+  <div id="alertArea"></div>
+
+  <!-- Row 1: Data Sources + Scan status -->
+  <div class="row g-3 mb-3">
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-header"><i class="bi bi-folder2-open"></i>Data Sources</div>
+        <div class="card-body">
+          <dl class="row mb-0 small">
+            <dt class="col-6">TAP Directory</dt>
+            <dd class="col-6 text-break" id="ddTapDir">—</dd>
+            <dt class="col-6">VS Detected</dt>
+            <dd class="col-6" id="ddVsCount">—</dd>
+            <dt class="col-6">Packages Found</dt>
+            <dd class="col-6" id="ddPkgCount">—</dd>
+          </dl>
+          <button class="btn btn-sm btn-outline-secondary mt-2 w-100" id="rescanBtn">
+            <i class="bi bi-arrow-clockwise"></i> Re-scan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-8">
+      <div class="card h-100">
+        <div class="card-header"><i class="bi bi-info-circle"></i>How to Use</div>
+        <div class="card-body small text-muted">
+          <ol class="mb-0 ps-3">
+            <li>The tool auto-scans the TAP directory on load.</li>
+            <li>Select the Virtual Systems to migrate.</li>
+            <li>Optionally adjust interface name mappings (CP &rarr; PAN).</li>
+            <li>For <strong>wave migration</strong>: upload an existing Panorama XML and enable append mode.</li>
+            <li>Click <strong>Convert</strong> — review the report and download the XML.</li>
+            <li>Import the XML into Panorama via <em>Device &rarr; Setup &rarr; Operations &rarr; Import named configuration snapshot</em>.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VS Selection -->
+  <div class="card mb-3">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <span><i class="bi bi-list-check"></i>Virtual System Selection</span>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-light" id="selectAllBtn">Select All</button>
+        <button class="btn btn-sm btn-outline-light" id="deselectAllBtn">Deselect All</button>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm table-hover table-vs mb-0">
+          <thead class="table-light">
+            <tr>
+              <th width="36"><input type="checkbox" id="masterCheck" title="Toggle all"></th>
+              <th>VS ID</th>
+              <th>VS Name</th>
+              <th>Policy Package</th>
+              <th class="text-center" title="show_configuration">Config</th>
+              <th class="text-center" title="show_route">Route</th>
+            </tr>
+          </thead>
+          <tbody id="vsTableBody">
+            <tr><td colspan="6" class="text-center text-muted py-3">Scanning&hellip;</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interface Mapping -->
+  <div class="card mb-3">
+    <div class="card-header">
+      <i class="bi bi-diagram-3"></i>Interface Mapping
+      <span class="text-white-50 fw-normal fs-6 ms-2">(Check Point &rarr; Palo Alto)</span>
+    </div>
+    <div class="card-body">
+      <p class="small text-muted mb-2">
+        Map Check Point interface base names to PAN-OS names.
+        Subinterfaces (e.g. <code>bond1.10</code>) are translated automatically using these base mappings.
+        Ethernet interfaces (<code>eth1-03</code>&nbsp;&rarr;&nbsp;<code>ethernet1/3</code>) are auto-converted.
+      </p>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered" id="ifaceTable">
+          <thead class="table-light">
+            <tr>
+              <th>CP Interface</th>
+              <th>PAN-OS Interface</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="ifaceTableBody">
+            <!-- filled by JS -->
+          </tbody>
+        </table>
+      </div>
+      <button class="btn btn-sm btn-outline-secondary" id="addIfaceBtn">
+        <i class="bi bi-plus-circle"></i> Add Mapping
+      </button>
+    </div>
+  </div>
+
+  <!-- Options row -->
+  <div class="row g-3 mb-3">
+    <!-- Wave / Merge -->
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-header"><i class="bi bi-layers"></i>Wave / Merge</div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Wave Label <span class="text-muted fw-normal">(optional)</span></label>
+            <input type="text" class="form-control form-control-sm" id="waveLabel"
+                   placeholder="e.g. Wave 1 — Core VSes">
+          </div>
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="appendMode">
+            <label class="form-check-label small" for="appendMode">
+              Append to existing Panorama XML <em>(wave migration)</em>
+            </label>
+          </div>
+          <div id="dropzone" class="mb-2" title="Click or drag an existing Panorama XML here">
+            <i class="bi bi-cloud-upload"></i>
+            <div class="mt-2 small">Drag &amp; drop existing Panorama XML<br>or click to browse</div>
+            <div id="dropzoneFilename" class="fw-semibold mt-1 small"></div>
+          </div>
+          <input type="file" id="xmlFileInput" accept=".xml" class="d-none">
+          <button class="btn btn-sm btn-outline-danger d-none" id="clearXmlBtn">
+            <i class="bi bi-x-circle"></i> Clear
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conversion options -->
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-header"><i class="bi bi-sliders"></i>Conversion Options</div>
+        <div class="card-body">
+          <div class="form-check mb-2">
+            <input type="checkbox" class="form-check-input" id="optOnlyReferenced">
+            <label class="form-check-label small" for="optOnlyReferenced">
+              <strong>Convert only referenced objects</strong><br>
+              <span class="text-muted">Skip objects not referenced in any rule (reduces XML size).</span>
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input type="checkbox" class="form-check-input" id="optPrefixNames">
+            <label class="form-check-label small" for="optPrefixNames">
+              <strong>Prefix object names with VS key</strong><br>
+              <span class="text-muted">Avoids name collisions across device groups.</span>
+            </label>
+          </div>
+          <hr class="my-2">
+          <p class="small text-muted mb-0">
+            <i class="bi bi-info-circle"></i>
+            Security zones in PAN rules default to <strong>any</strong> (CP does not use zones the same way).
+            Applications default to <strong>any</strong> — enable App-ID separately in PAN.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Convert button -->
+  <div class="d-flex justify-content-center mb-4">
+    <button class="btn btn-primary btn-lg" id="convertBtn" disabled>
+      <i class="bi bi-arrow-right-circle-fill"></i>&nbsp; Convert Selected VS
+    </button>
+  </div>
+
+  <!-- Results panel (hidden until after conversion) -->
+  <div id="resultsPanel" class="d-none">
+    <div class="card mb-3">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-clipboard2-check"></i>Conversion Report</span>
+        <button class="btn btn-success btn-sm" id="downloadBtn">
+          <i class="bi bi-download"></i> Download XML
+        </button>
+      </div>
+      <div class="card-body">
+        <!-- Summary table -->
+        <div class="table-responsive mb-3">
+          <table class="table table-sm table-bordered" id="reportTable">
+            <thead class="table-light">
+              <tr>
+                <th>VS Name</th>
+                <th>Device Group</th>
+                <th>Template</th>
+                <th>Addr Objs</th>
+                <th>Svc Objs</th>
+                <th>Sec Rules</th>
+                <th>NAT Rules</th>
+                <th>Interfaces</th>
+                <th>VPN Tunnels</th>
+                <th>Warnings</th>
+                <th>Errors</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="reportTableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Per-VS details -->
+        <div id="reportDetails"></div>
+
+        <!-- XML preview -->
+        <h6 class="mt-3 mb-1 fw-semibold">XML Preview <span class="text-muted fw-normal small">(first 8000 chars)</span></h6>
+        <div id="xmlPreview"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* =========================================================
+   State
+   ========================================================= */
+let _vsListData    = [];   // raw VS list from /api/scan
+let _allPackages   = [];   // [{filename, filepath}]
+let _ifaceMap      = {};   // current interface map
+let _convResultXml = null; // base64 XML from last conversion
+let _convFilename  = '';
+
+/* =========================================================
+   Utility
+   ========================================================= */
+function showAlert(msg, type='danger') {
+  const el = document.getElementById('alertArea');
+  el.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
+    ${msg}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>`;
+}
+
+function clearAlert() {
+  document.getElementById('alertArea').innerHTML = '';
+}
+
+function showSpinner(text='Converting…') {
+  document.getElementById('spinnerText').textContent = text;
+  document.getElementById('spinnerOverlay').classList.add('active');
+}
+
+function hideSpinner() {
+  document.getElementById('spinnerOverlay').classList.remove('active');
+}
+
+function iconStatus(flag) {
+  if (flag) return '<i class="bi bi-check-circle-fill status-ok" title="Found"></i>';
+  return '<i class="bi bi-x-circle-fill status-miss" title="Not found"></i>';
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+/* =========================================================
+   Scan
+   ========================================================= */
+async function doScan() {
+  showSpinner('Scanning TAP directory…');
+  try {
+    const resp = await fetch('/api/scan');
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+
+    _vsListData  = data.vs_list || [];
+    _allPackages = data.all_packages || [];
+    _ifaceMap    = data.default_interface_map || {};
+
+    document.getElementById('ddTapDir').textContent  = data.tap_dir || '—';
+    document.getElementById('tapDirLabel').textContent = data.tap_dir || '';
+    document.getElementById('ddVsCount').textContent  = _vsListData.length;
+    document.getElementById('ddPkgCount').textContent = _allPackages.length;
+
+    renderVsTable();
+    renderIfaceTable();
+
+    // Enable convert button
+    document.getElementById('convertBtn').disabled = false;
+    clearAlert();
+  } catch(e) {
+    showAlert(`Scan failed: ${e.message}`);
+  } finally {
+    hideSpinner();
+  }
+}
+
+/* =========================================================
+   VS Table
+   ========================================================= */
+function renderVsTable() {
+  const tbody = document.getElementById('vsTableBody');
+  if (!_vsListData.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">No VS found.</td></tr>';
+    return;
+  }
+
+  const pkgOptions = _allPackages
+    .map(p => `<option value="${escHtml(p.filepath)}">${escHtml(p.filename)}</option>`)
+    .join('');
+
+  tbody.innerHTML = _vsListData.map((vs, idx) => {
+    const selPkg  = vs.package_file || '';
+    return `<tr>
+      <td><input type="checkbox" class="vs-check form-check-input" data-idx="${idx}" checked></td>
+      <td><span class="badge bg-secondary">${escHtml(vs.vs_id)}</span></td>
+      <td><strong>${escHtml(vs.vs_name)}</strong></td>
+      <td>
+        <select class="form-select form-select-sm pkg-select" data-idx="${idx}" style="font-size:.78rem;min-width:200px;">
+          <option value="">— none —</option>
+          ${pkgOptions}
+        </select>
+      </td>
+      <td class="text-center">${iconStatus(vs.has_config)}</td>
+      <td class="text-center">${iconStatus(vs.has_route)}</td>
+    </tr>`;
+  }).join('');
+
+  // Set selected package
+  _vsListData.forEach((vs, idx) => {
+    const sel = tbody.querySelector(`.pkg-select[data-idx="${idx}"]`);
+    if (sel && vs.package_file) sel.value = vs.package_file;
+  });
+
+  // Listeners
+  tbody.querySelectorAll('.vs-check').forEach(cb => {
+    cb.addEventListener('change', updateMasterCheck);
+  });
+  tbody.querySelectorAll('.pkg-select').forEach(sel => {
+    sel.addEventListener('change', e => {
+      const idx = parseInt(e.target.dataset.idx);
+      _vsListData[idx].package_file = e.target.value || null;
+    });
+  });
+}
+
+function updateMasterCheck() {
+  const checks  = document.querySelectorAll('.vs-check');
+  const checked = [...checks].filter(c => c.checked).length;
+  const mc = document.getElementById('masterCheck');
+  mc.checked       = checked === checks.length;
+  mc.indeterminate = checked > 0 && checked < checks.length;
+}
+
+document.getElementById('masterCheck').addEventListener('change', e => {
+  document.querySelectorAll('.vs-check').forEach(c => c.checked = e.target.checked);
+});
+document.getElementById('selectAllBtn').addEventListener('click', () => {
+  document.querySelectorAll('.vs-check').forEach(c => c.checked = true);
+  document.getElementById('masterCheck').checked = true;
+  document.getElementById('masterCheck').indeterminate = false;
+});
+document.getElementById('deselectAllBtn').addEventListener('click', () => {
+  document.querySelectorAll('.vs-check').forEach(c => c.checked = false);
+  document.getElementById('masterCheck').checked = false;
+  document.getElementById('masterCheck').indeterminate = false;
+});
+
+/* =========================================================
+   Interface Map Table
+   ========================================================= */
+function renderIfaceTable() {
+  const tbody = document.getElementById('ifaceTableBody');
+  tbody.innerHTML = '';
+  Object.entries(_ifaceMap).forEach(([cp, pan]) => {
+    addIfaceRow(cp, pan);
+  });
+}
+
+function addIfaceRow(cp='', pan='') {
+  const tbody = document.getElementById('ifaceTableBody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" class="form-control form-control-sm iface-cp" value="${escHtml(cp)}" placeholder="bond1"></td>
+    <td><input type="text" class="form-control form-control-sm iface-pan" value="${escHtml(pan)}" placeholder="ae1"></td>
+    <td><button class="btn btn-sm btn-outline-danger remove-iface-btn" title="Remove"><i class="bi bi-trash3"></i></button></td>
+  `;
+  tr.querySelector('.remove-iface-btn').addEventListener('click', () => tr.remove());
+  tbody.appendChild(tr);
+}
+
+document.getElementById('addIfaceBtn').addEventListener('click', () => addIfaceRow());
+
+function collectIfaceMap() {
+  const map = {};
+  document.querySelectorAll('#ifaceTableBody tr').forEach(tr => {
+    const cp  = tr.querySelector('.iface-cp')?.value.trim();
+    const pan = tr.querySelector('.iface-pan')?.value.trim();
+    if (cp && pan) map[cp] = pan;
+  });
+  return map;
+}
+
+/* =========================================================
+   Drop Zone / XML file upload
+   ========================================================= */
+let _existingXmlContent = null;
+
+const dropzone     = document.getElementById('dropzone');
+const xmlFileInput = document.getElementById('xmlFileInput');
+const clearXmlBtn  = document.getElementById('clearXmlBtn');
+
+dropzone.addEventListener('click', () => xmlFileInput.click());
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) loadXmlFile(file);
+});
+
+xmlFileInput.addEventListener('change', () => {
+  if (xmlFileInput.files[0]) loadXmlFile(xmlFileInput.files[0]);
+});
+
+function loadXmlFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    _existingXmlContent = e.target.result;
+    dropzone.classList.add('has-file');
+    document.getElementById('dropzoneFilename').textContent = file.name;
+    document.getElementById('appendMode').checked = true;
+    clearXmlBtn.classList.remove('d-none');
+  };
+  reader.readAsText(file);
+}
+
+clearXmlBtn.addEventListener('click', () => {
+  _existingXmlContent = null;
+  dropzone.classList.remove('has-file');
+  document.getElementById('dropzoneFilename').textContent = '';
+  document.getElementById('appendMode').checked = false;
+  xmlFileInput.value = '';
+  clearXmlBtn.classList.add('d-none');
+});
+
+/* =========================================================
+   Convert
+   ========================================================= */
+document.getElementById('convertBtn').addEventListener('click', doConvert);
+
+async function doConvert() {
+  clearAlert();
+
+  // Collect selected VS
+  const checks = [...document.querySelectorAll('.vs-check')].filter(c => c.checked);
+  if (!checks.length) { showAlert('Please select at least one VS.', 'warning'); return; }
+
+  const selectedVs = checks.map(c => {
+    const idx = parseInt(c.dataset.idx);
+    return _vsListData[idx];
+  });
+
+  const ifaceMap = collectIfaceMap();
+  const waveLabel = document.getElementById('waveLabel').value.trim();
+  const appendMode = document.getElementById('appendMode').checked;
+  const existingXml = (appendMode && _existingXmlContent) ? _existingXmlContent : null;
+
+  const options = {
+    only_referenced_objects: document.getElementById('optOnlyReferenced').checked,
+    prefix_object_names:     document.getElementById('optPrefixNames').checked,
+  };
+
+  const body = {
+    selected_vs:  selectedVs,
+    interface_map: ifaceMap,
+    options:       options,
+    existing_xml:  existingXml,
+    wave_label:    waveLabel,
+  };
+
+  showSpinner(`Converting ${selectedVs.length} VS…`);
+  document.getElementById('convertBtn').disabled = true;
+
+  try {
+    const resp = await fetch('/api/convert', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body),
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+
+    _convResultXml = data.xml_b64;
+    _convFilename  = data.filename;
+
+    renderReport(data.report, data.xml_b64);
+    document.getElementById('resultsPanel').classList.remove('d-none');
+    document.getElementById('resultsPanel').scrollIntoView({behavior: 'smooth'});
+  } catch(e) {
+    showAlert(`Conversion failed: ${escHtml(e.message)}`);
+  } finally {
+    hideSpinner();
+    document.getElementById('convertBtn').disabled = false;
+  }
+}
+
+/* =========================================================
+   Report rendering
+   ========================================================= */
+function renderReport(report, xmlB64) {
+  const tbody   = document.getElementById('reportTableBody');
+  const details = document.getElementById('reportDetails');
+  tbody.innerHTML   = '';
+  details.innerHTML = '';
+
+  report.forEach(r => {
+    const addrTotal = (r.objects_converted?.host || 0)
+                    + (r.objects_converted?.network || 0)
+                    + (r.objects_converted?.['address-range'] || 0)
+                    + (r.objects_converted?.['dns-domain'] || 0)
+                    + (r.objects_converted?.['address-group'] || 0);
+    const svcTotal  = (r.objects_converted?.service || 0)
+                    + (r.objects_converted?.['service-group'] || 0);
+    const warnCount = (r.warnings || []).length;
+    const errCount  = (r.errors  || []).length;
+
+    let statusBadge;
+    if (r.skipped)        statusBadge = '<span class="badge bg-secondary">Skipped</span>';
+    else if (errCount)    statusBadge = '<span class="badge bg-danger">Errors</span>';
+    else if (warnCount)   statusBadge = '<span class="badge bg-warning text-dark">Warnings</span>';
+    else                  statusBadge = '<span class="badge bg-success">OK</span>';
+
+    tbody.innerHTML += `<tr>
+      <td><strong>${escHtml(r.vs_name)}</strong></td>
+      <td class="small text-break">${escHtml(r.dg_name)}</td>
+      <td class="small text-break">${escHtml(r.tmpl_name)}</td>
+      <td class="text-center">${addrTotal}</td>
+      <td class="text-center">${svcTotal}</td>
+      <td class="text-center">${r.rules_converted?.security ?? 0}</td>
+      <td class="text-center">${r.rules_converted?.nat ?? 0}</td>
+      <td class="text-center">${r.interfaces ?? 0}</td>
+      <td class="text-center">${r.vpn_tunnels ?? 0}</td>
+      <td class="text-center">
+        ${warnCount > 0 ? `<span class="badge bg-warning text-dark badge-count">${warnCount}</span>` : '<span class="text-muted">0</span>'}
+      </td>
+      <td class="text-center">
+        ${errCount > 0 ? `<span class="badge bg-danger badge-count">${errCount}</span>` : '<span class="text-muted">0</span>'}
+      </td>
+      <td>${statusBadge}</td>
+    </tr>`;
+
+    // Details card
+    if (warnCount || errCount || r.skipped) {
+      const cardClass = errCount ? 'has-errors' : (warnCount ? 'has-warnings' : '');
+      let detailHtml = `<div class="card mb-2 report-card ${cardClass}">
+        <div class="card-body py-2 px-3">
+          <h6 class="mb-1">${escHtml(r.vs_name)}`;
+      if (r.skipped) detailHtml += ' <span class="badge bg-secondary ms-1">Skipped (DG exists)</span>';
+      detailHtml += `</h6>`;
+
+      if (errCount) {
+        detailHtml += `<details open><summary class="small fw-semibold text-danger">${errCount} Error(s)</summary><ul class="mb-1 small text-danger">`;
+        r.errors.forEach(e => { detailHtml += `<li>${escHtml(e)}</li>`; });
+        detailHtml += '</ul></details>';
+      }
+      if (warnCount) {
+        detailHtml += `<details><summary class="small fw-semibold text-warning">${warnCount} Warning(s)</summary><ul class="mb-1 small text-muted">`;
+        r.warnings.forEach(w => { detailHtml += `<li>${escHtml(w)}</li>`; });
+        detailHtml += '</ul></details>';
+      }
+      detailHtml += `</div></div>`;
+      details.innerHTML += detailHtml;
+    }
+  });
+
+  // XML preview
+  const xmlStr = atob(xmlB64);
+  document.getElementById('xmlPreview').textContent = xmlStr.substring(0, 8000)
+    + (xmlStr.length > 8000 ? '\n… (truncated for display)' : '');
+}
+
+/* =========================================================
+   Download
+   ========================================================= */
+document.getElementById('downloadBtn').addEventListener('click', async () => {
+  if (!_convResultXml) return;
+  try {
+    const resp = await fetch('/api/download', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({xml_b64: _convResultXml, filename: _convFilename}),
+    });
+    if (!resp.ok) throw new Error('Download request failed');
+    const blob = await resp.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = _convFilename;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) {
+    showAlert(`Download failed: ${escHtml(e.message)}`);
+  }
+});
+
+/* =========================================================
+   Re-scan button
+   ========================================================= */
+document.getElementById('rescanBtn').addEventListener('click', doScan);
+
+/* =========================================================
+   Init
+   ========================================================= */
+doScan();
+</script>
+</body>
+</html>
