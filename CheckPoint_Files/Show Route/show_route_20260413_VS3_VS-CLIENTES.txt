@@ -1,0 +1,37 @@
+xenon:3> show virtual-system all
+Virtual systems list
+VS ID       VS NAME
+0           0
+3           XENON_VS-CLIENTES
+4           XENON_VS-MOBILE
+6           XENON_VS-WEB1
+7           XENON_VS-DMZ
+8           XENON_VS-ENTIDADES
+9           XENON_VS-INTERNET
+10          XENON_VS-WEBX
+11          XENON_VS-RBVPN
+12          XENON_VS-CPDNETS
+13          XENON_VS-NAAS
+xenon:3>
+xenon:3> show route
+Codes: C - Connected, S - Static, R - RIP, B - BGP (D - Default),
+       O - OSPF IntraArea (IA - InterArea, E - External, N - NSSA),
+       A - Aggregate, K - Kernel Remnant, H - Hidden, P - Suppressed,
+       NP - NAT Pool, U - Unreachable, i - Inactive
+
+S               0.0.0.0/0           via 10.154.0.38, eth1-03.216, cost 0, age 254739
+S               10.0.0.0/8          via 10.154.0.38, eth1-03.216, cost 0, age 254739
+C               10.154.0.32/29      is directly connected, eth1-03.216
+C               127.0.0.0/8         is directly connected, lo
+S               168.86.128.0/18     via 10.154.0.38, eth1-03.216, cost 0, age 254739
+S               172.16.0.0/12       via 10.154.0.38, eth1-03.216, cost 0, age 254739
+C               172.18.0.0/16       is directly connected, bond1.10
+C               172.20.0.0/16       is directly connected, bond1.21
+C               172.22.0.0/16       is directly connected, bond1.22
+C               172.30.0.0/23       is directly connected, bond1.101
+C               172.30.2.0/23       is directly connected, bond1.102
+C               172.30.6.0/23       is directly connected, bond1.104
+S               192.168.0.0/16      via 10.154.0.38, eth1-03.216, cost 0, age 254739
+S               192.168.101.0/24    via 172.22.0.250, bond1.22, cost 0, age 254739
+S               192.168.104.0/24    via 172.20.0.5, bond1.21, cost 0, age 254739
+xenon:3>

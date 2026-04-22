@@ -1,0 +1,36 @@
+xenon:6> show virtual-system all
+Virtual systems list
+VS ID       VS NAME
+0           0
+3           XENON_VS-CLIENTES
+4           XENON_VS-MOBILE
+6           XENON_VS-WEB1
+7           XENON_VS-DMZ
+8           XENON_VS-ENTIDADES
+9           XENON_VS-INTERNET
+10          XENON_VS-WEBX
+11          XENON_VS-RBVPN
+12          XENON_VS-CPDNETS
+13          XENON_VS-NAAS
+xenon:6>
+xenon:6> show route
+Codes: C - Connected, S - Static, R - RIP, B - BGP (D - Default),
+       O - OSPF IntraArea (IA - InterArea, E - External, N - NSSA),
+       A - Aggregate, K - Kernel Remnant, H - Hidden, P - Suppressed,
+       NP - NAT Pool, U - Unreachable, i - Inactive
+
+S               0.0.0.0/0           via 91.198.90.4, eth4-04.520, cost 0, age 254806
+C               10.0.192.0/19       is directly connected, bond1.106
+C               10.0.224.0/24       is directly connected, bond1.191
+S               10.88.0.0/16        via 10.154.0.22, bond1.214, cost 0, age 254806
+S               10.128.0.0/24       via 10.154.0.22, bond1.214, cost 0, age 254806
+C               10.154.0.16/29      is directly connected, bond1.214
+C               91.198.90.0/28      is directly connected, eth4-04.520
+S               91.198.90.16/29     via 91.198.90.14, eth4-04.520, cost 0, age 254806
+S               91.198.90.32/27     via 91.198.90.14, eth4-04.520, cost 0, age 254806
+S               91.198.90.64/26     via 91.198.90.14, eth4-04.520, cost 0, age 254806
+S               91.198.90.128/25    via 91.198.90.14, eth4-04.520, cost 0, age 254806
+C               127.0.0.0/8         is directly connected, lo
+S               172.16.0.0/12       via 10.154.0.22, bond1.214, cost 0, age 254806
+S               192.168.0.0/16      via 10.154.0.22, bond1.214, cost 0, age 254806
+xenon:6>

@@ -1,0 +1,26 @@
+xenon:0> show virtual-system all
+Virtual systems list
+VS ID       VS NAME
+0           0
+3           XENON_VS-CLIENTES
+4           XENON_VS-MOBILE
+6           XENON_VS-WEB1
+7           XENON_VS-DMZ
+8           XENON_VS-ENTIDADES
+9           XENON_VS-INTERNET
+10          XENON_VS-WEBX
+11          XENON_VS-RBVPN
+12          XENON_VS-CPDNETS
+13          XENON_VS-NAAS
+xenon:0>
+xenon:0> show route
+Codes: C - Connected, S - Static, R - RIP, B - BGP (D - Default),
+       O - OSPF IntraArea (IA - InterArea, E - External, N - NSSA),
+       A - Aggregate, K - Kernel Remnant, H - Hidden, P - Suppressed,
+       NP - NAT Pool, U - Unreachable, i - Inactive
+
+S               0.0.0.0/0           via 192.168.3.1, Mgmt, cost 0, age 254941
+C               127.0.0.0/8         is directly connected, lo
+C               192.168.3.0/26      is directly connected, Mgmt
+C               192.168.3.204/30    is directly connected, bond10
+xenon:0>

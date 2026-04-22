@@ -25,8 +25,6 @@ from io import BytesIO
 # Configuration
 # ---------------------------------------------------------------------------
 
-# *** Change this path if your TAP directory is elsewhere ***
-TAP_DIR = r'C:\Users\gonca\Desktop\TAP'
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 64 * 1024 * 1024  # 64 MB max upload
@@ -104,8 +102,17 @@ def api_scan():
       "error": null
     }
     """
+    tap_dir = request.args.get('tap_dir', '').strip()
+    if not tap_dir:
+        return jsonify({'error': 'No TAP directory specified.', 'vs_list': [], 'all_packages': []}), 400
+    # Resolve relative paths from the project root (parent of cp_migrator/)
+    if not os.path.isabs(tap_dir):
+        tap_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), tap_dir)
+    if not os.path.isdir(tap_dir):
+        return jsonify({'error': f'Directory not found: {tap_dir}', 'vs_list': [], 'all_packages': []}), 400
+
     try:
-        vs_list, all_packages = discover_all(TAP_DIR)
+        vs_list, all_packages = discover_all(tap_dir)
 
         # Enrich with boolean flags and shorten paths for display
         for vs in vs_list:
@@ -120,7 +127,7 @@ def api_scan():
                     vs[f"{key}_basename"] = None
 
         return jsonify({
-            'tap_dir':               TAP_DIR,
+            'tap_dir':               tap_dir,
             'vs_list':               vs_list,
             'all_packages':          all_packages,
             'default_interface_map': DEFAULT_INTERFACE_MAP,
@@ -169,11 +176,17 @@ def api_convert():
     except Exception:
         body = {}
 
-    selected_vs   = body.get('selected_vs', [])
-    interface_map = body.get('interface_map', None)
-    options       = body.get('options', {})
-    existing_xml  = body.get('existing_xml', None)
-    wave_label    = body.get('wave_label', '')
+    selected_vs    = body.get('selected_vs', [])
+    interface_map  = body.get('interface_map', None)
+    template_name  = body.get('template_name', 'Tmpl-Migration')
+    tap_dir        = body.get('tap_dir', '')
+    options        = body.get('options', {})
+    existing_xml   = body.get('existing_xml', None)
+    wave_label     = body.get('wave_label', '')
+
+    # Resolve relative paths from the project root
+    if tap_dir and not os.path.isabs(tap_dir):
+        tap_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), tap_dir)
 
     if not selected_vs:
         return jsonify({'error': 'No VS selected for conversion.'}), 400
@@ -183,7 +196,9 @@ def api_convert():
     parse_errors = []
     for vs_info in selected_vs:
         try:
-            vs_data = parse_vs(vs_info, TAP_DIR)
+            vs_data = parse_vs(vs_info, tap_dir)
+            # Carry the target vsys name through to the builder
+            vs_data['target_vsys'] = vs_info.get('target_vsys', 'vsys1')
             vs_data_list.append(vs_data)
         except Exception as exc:
             parse_errors.append(f"{vs_info.get('vs_name', '?')}: {exc}")
@@ -198,6 +213,7 @@ def api_convert():
             vs_data_list,
             existing_xml_str=existing_xml,
             interface_map=interface_map,
+            template_name=template_name,
             options=options,
         )
     except Exception as exc:
@@ -254,7 +270,6 @@ def api_download():
 if __name__ == '__main__':
     print("=" * 60)
     print("  Check Point -> Panorama Migration Tool")
-    print(f"  TAP directory: {TAP_DIR}")
     print("  Open http://localhost:5000 in your browser")
     print("=" * 60)
     app.run(host='0.0.0.0', port=5000, debug=False)

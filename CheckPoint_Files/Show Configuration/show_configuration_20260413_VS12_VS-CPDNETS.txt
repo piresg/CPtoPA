@@ -1,0 +1,1973 @@
+xenon:12> show configuration
+#
+# Configuration of xenon
+# Language version: 14.1v1
+#
+# Exported by jchenriques on Mon Apr 13 16:24:57 2026
+#
+set installer policy check-for-updates-period 240
+set installer policy periodically-self-update on
+set installer policy auto-compress-snapshot on
+set installer policy self-test install-policy off
+set installer policy self-test network-link-up off
+set installer policy self-test start-processes on
+set arp table cache-size 4096
+set arp table validity-timeout 60
+set arp announce 2
+set ip-conflicts-monitor state off
+set message banner on
+
+set message motd off
+
+set message caption off
+add bonding group 1
+add bonding group 2
+add bonding group 10
+set bonding group 1 mode 8023AD
+set bonding group 1 lacp-rate slow
+set bonding group 1 mii-interval 100
+set bonding group 1 down-delay 200
+set bonding group 1 up-delay 200
+set bonding group 1 xmit-hash-policy layer3+4
+set bonding group 2 mode 8023AD
+set bonding group 2 lacp-rate slow
+set bonding group 2 mii-interval 100
+set bonding group 2 down-delay 200
+set bonding group 2 up-delay 200
+set bonding group 2 xmit-hash-policy layer3+4
+set bonding group 10 mode 8023AD
+set bonding group 10 lacp-rate slow
+set bonding group 10 mii-interval 100
+set bonding group 10 down-delay 200
+set bonding group 10 up-delay 200
+set bonding group 10 xmit-hash-policy layer3+4
+set core-dump enable
+set core-dump total 1000
+set core-dump per_process 2
+set core-dump send_crash_data on
+set clienv debug 0
+set clienv echo-cmd off
+set clienv output pretty
+set clienv prompt "%M"
+set clienv rows 79
+set clienv syntax-check off
+set dns mode per-vs
+set dns primary 10.128.0.100
+set dns secondary 10.128.0.101
+set expert-password-hash $6$rounds=10000$BYTvJnAN$6D0vaAfgsbDeqZts8IsZ8bI4CgvB6DEGUj2tABLTXwfRo5XSGFtsmcbaLTCkjnP4PNarzFvWyxH75wYGh.bPx1
+set format date dd-mmm-yyyy
+set format time 24-hour
+set format netmask Dotted
+set hostname xenon
+add allowed-client host any-host
+set web table-refresh-rate 15
+set web session-timeout 10
+set web ssl-port 443
+set web ssl3-enabled off
+set web daemon-enable on
+set inactivity-timeout 720
+set ipv6-state off
+add command api path /bin/api_wrap description "Start, stop, or check status of API server"
+add command tecli path /bin/tecli_start description "Threat Emulation Blade shell"
+set lcd screensaver mode model
+set lcd screensaver timeout 30
+
+
+set net-access telnet off
+set ntp active on
+set ntp server primary ntp.checkpoint.com version 4
+set ntp server secondary ntp2.checkpoint.com version 4
+set password-controls min-password-length 6
+set password-controls complexity 2
+set password-controls palindrome-check true
+set password-controls history-checking true
+set password-controls history-length 10
+set password-controls password-expiration never
+set password-controls expiration-warning-days 7
+set password-controls expiration-lockout-days never
+set password-controls force-change-when no
+set password-controls deny-on-nonuse enable false
+set password-controls deny-on-nonuse allowed-days 365
+set password-controls deny-on-fail enable false
+set password-controls deny-on-fail failures-allowed 10
+set password-controls deny-on-fail allow-after 1200
+set password-controls deny-on-fail block-admin false
+set password-controls password-hash-type SHA512
+set user admin shell /bin/bash
+set user admin password-hash $6$rounds=10000$9bIxsew3$R38tSQWx4JdbdNfZmps2cZpgd/v7Gd2XQ0nEU1.f4L7qmwuADV9YXBvrilk6nD7X5ffHOD15gCdEX6DyjsbAC.
+add user jchenriques uid 0 homedir /home/jchenriques
+add rba user jchenriques roles adminRole
+set user jchenriques gid 0 shell /bin/bash
+set user jchenriques realname "Jchenriques"
+set user jchenriques password-hash $6$rounds=10000$bEg5YAem$EbOl9vxLyNMFaSxrEhnc2.ApqFcUfkceww9VWdAnGq3LmjqADezuh5baxw5UiiA4RxaSsncu9HSogV.TGCLJZ1
+add user layer8 uid 0 homedir /home/layer8
+add rba user layer8 roles adminRole
+set user layer8 gid 0 shell /bin/bash
+set user layer8 realname "Layer8"
+set user layer8 password-hash $6$rounds=10000$W2iz7hPJ$wmv85CO1xj4tVFyMLyxR4ZFnhPHzFuDzfYE78LIRohbQoBMeg00C/YQWaiLtbyOrGWs4OhSVYW8F/gYmHYeT91
+set user monitor shell /etc/cli.sh
+set user monitor password-hash *
+set max-path-splits 8
+set tracefile maxnum 10
+set tracefile size 1
+set routedsyslog on
+set ssh server cipher 3des-cbc off
+set ssh server cipher aes128-cbc on
+set ssh server cipher aes128-ctr on
+set ssh server cipher aes128-gcm@openssh.com on
+set ssh server cipher aes192-cbc off
+set ssh server cipher aes192-ctr on
+set ssh server cipher aes256-cbc off
+set ssh server cipher aes256-ctr on
+set ssh server cipher aes256-gcm@openssh.com on
+set ssh server cipher chacha20-poly1305@openssh.com on
+ set ssh server cipher rijndael-cbc@lysator.liu.se off
+set ssh server mac hmac-md5-96-etm@openssh.com off
+set ssh server mac hmac-md5-etm@openssh.com off
+set ssh server mac hmac-sha1 on
+set ssh server mac hmac-sha1-96-etm@openssh.com off
+set ssh server mac hmac-sha1-etm@openssh.com on
+set ssh server mac hmac-sha2-256 on
+set ssh server mac hmac-sha2-256-etm@openssh.com on
+set ssh server mac hmac-sha2-512 on
+set ssh server mac hmac-sha2-512-etm@openssh.com on
+set ssh server mac umac-64-etm@openssh.com on
+set ssh server mac umac-64@openssh.com on
+set ssh server mac umac-128-etm@openssh.com on
+set ssh server mac umac-128@openssh.com on
+add ssh hba ipv4-address 192.168.3.51 public-key access-mode standalone encoded-data AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFIIRT1hm+nUU2gDu2OIQUzq0fs1IJwH0PfHoT9b4AxUheGqTen7Dmt0YkESf7LRD/st/8mLkNt8aZonjapdCX4=
+add ssh hba ipv4-address 213.41.10.94 public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAADAQABAAABAQClaawDmlm7IW+xhuDmCVS9+nknxFHeuwq3OjctrkgdoIeCo+/rfz9+cc5sV1snOpT7cJI1obtBZIFt3lP7R4YKtf5LtUZfp4TDn8tUaDq9E+a2v9jA98DSRbs+fUJIo5L8WImgtaqtk+Sp4UkcceYTzYd85fTtpa6bV/LkKhkxaCC8z7R8LZ1tf9AWIT0u9K1qnzqL/6EiTmzO9K8VzyhJvx0DQmcWkVVwl6Wjn7mtm3Vdt+ludJllRLEY3H/n4JOW6ueoq62XlLD9thy0rcT4aABsEgYuYBFdw/2qVJ6A4O4BnXXZxdzHAWWHveLdK11mdJ9pbZm+uWJpB+WOlfkd
+add ssh hba ipv4-address 195.23.40.220 public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAADAQABAAABAQCGZ58mD7F77Qwnw/BC9t7m0rjgTavlb1P9+cb4x8R71qTzPYnveu5LBCE1t2THBGkjfsuk4sDUu4/ZFGn8UkSGvPOXPI+jVZzaV5FrNy8Ge34haZNLRZUtCXh0qoklfbShf3J5t7za/0MqLXr2cbPrYFRJWXrcZdMHn36G+3UE8FhGZ7xafpREqjJHrJiNCwMgqqzsAwt5M6a7FvLVsAbdYCc55SdN7G/o5rw+K9vbKBUnfeWGlQD01RgCz2LVrKV+cErAFRFqe0PYmoNFTS+PdgU+9Ioknp8zhw2plpxpNMbChypuB66iwC9jB/q0eS+0e+AanILUo+9C9ECBCuw1
+add ssh hba ipv4-address 62.48.170.209 public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAADAQABAAABAQDR5/Q2P5/zIGGuPAgYySsez+a798y2B8y3BFuOhIiBjhfa3zA0jWGaGdlkogYYlpTjDvRhStuKAMx7iek1IYCxZM9iWNhCqcw2e7I7fWx9rlfD+7h/Vd7AuBY1P3tNtshWlgK7uXn65/0Vm47S7yHBD/xaii/C8Kntv0XRrp+N27Mfnlbp0F/x22SaBz/TGa0nBsXJsprADH+Ax8gC8ybk3QyeexdhVksuHDEp8IiJvcRKrSrBX81f+3uJbfiviAhHC0lKwsoWrPqJfwksdbzZynP3/IZBxkBAreqaAdJqCmLGZRIkA4tMuo3P9GW7pJe1kRCfBfOd8u/A6LDo12rN
+add ssh hba ipv4-address 10.100.198.1 public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAADAQABAAABAQCGZ58mD7F77Qwnw/BC9t7m0rjgTavlb1P9+cb4x8R71qTzPYnveu5LBCE1t2THBGkjfsuk4sDUu4/ZFGn8UkSGvPOXPI+jVZzaV5FrNy8Ge34haZNLRZUtCXh0qoklfbShf3J5t7za/0MqLXr2cbPrYFRJWXrcZdMHn36G+3UE8FhGZ7xafpREqjJHrJiNCwMgqqzsAwt5M6a7FvLVsAbdYCc55SdN7G/o5rw+K9vbKBUnfeWGlQD01RgCz2LVrKV+cErAFRFqe0PYmoNFTS+PdgU+9Ioknp8zhw2plpxpNMbChypuB66iwC9jB/q0eS+0e+AanILUo+9C9ECBCuw1
+add ssh hba ipv4-address 65.217.178.54 public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAADAQABAAAAgwDA6/+uMXIehrXotjMufpPlMDkcGC4+NhHWCeuH4ot5ShlCwyM4Dyare2QeIo2D4dKYvoYk1VmkWPkHpxn7a27b8DmleKkfPKgHRxEHXl4wcDMLDA85J+s0ZcmGDq5a+dycgWCBxv8w9+MT05Swu7Bi1pk+tTlukesxqx0FtikfuTgT
+add ssh hba ipv4-address 65.213.23.186 public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAADAQABAAAAgwCcPQvq862afKxF4JUkAqlRZpj4Gn5b48oh5/n4RzSLpPfcATBRd6HBz14/hikDNtu8I9TY7zmaBS97Jzu1EkCBoirtXBBH24AP6UYji/dux5oFgcYIs3Yvd6sKFa5tP8X/tZryNct3mcEIfCfMhaPJ6a7TYeMM9bDx3imTnH24LJQd
+add ssh hba ipv4-address 213.61.241.118 public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAADAQABAAABAQCoVU+zBYS3ldj0z6S9RJklwvHc7hztX4yxk/Qz0wLrw5p3T5Q118mZtI5agXi/DYsT5TO25AvZyRVqeC96/TXwNxP84yFPf7rbaSxBSlgl69tZcRQJWPx/yFE6jMvkwReQvaqUvvtux2XHXjbkebGsBt0ADvY5WLKziuw6lN5wFlmH8IdSYHp/BAYlQOR1e58p9bMFE0TvnKW31qjOpvNFoB5TsMi3qenNEkob7L72ISPNCKt57pu/ouraHkyc1+2zwzq4xvFwr6JKafrMosVb+vDa/t1lAacjABVHuM1Dx/tadg0gnNjijFOCV2wbcOjUmBt7bMTX7h91mdZJQDKV
+add ssh hba ipv4-address 87.241.47.118 public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAADAQABAAABAQDFTgxL+kqJwOjyFMo5xNzBd6K7zVpbSeVMM1iTKRj6t7+XL13lyInOrHjO9doETPh8i0jGtu6OdBvGcicfHpcfxGHM6oWJmEKtHwd99Doqp+lccMXAt547T40aHd+7pFYDzgl++JCO3Nr5h5wYZQkziJUzu3fNQmsgITb3sTawv7+7yYIpiI3eI/p1utjkkUCvHD4AGvQbVKRFHRi9KxQGmjS1/lwe1MeO5qeysrOlIz8cNJMdJd5KFO9TvYcWIE2VfNQOSkz2ByMuFuevSFiM282tuWLGIQaPzkqTaHwT6QzquRbehDpV/XQUp6q1OqptjgNGqkzsrxkaItq0647T
+add ssh hba ipv4-address 10.100.226.1 public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAADAQABAAABAQCU1mqARN+zQLVAXqTcNu57bZIqRgMgMPAzzHlrvT4Y/5dFaRSDdqhCbsJa9/vVZqmKHNnvasXX8M66yyX+TCMqPS3tV9xNWEYqQwcm2J42MBLc87iurULqpA0FeCptzX1bhhEYKIDMBlcN3Fgw7s9atNSTLlQA6rrmoy5bDSmfX7ATD7As0bD4iqCdMGlC/NfcEHFjfhy31cC26Csrw2FARwGDUsg4LINOSEa2JDGTF3/pRbH8a9DC9WiBwQB6dscwx60LfaRpU0z8ZD16L/GdNCahI+qlbM5/T8jAx3I8YG5yzg97+8EMF0JS4zhnLH+4Weo2H6d0wd5pOfqRVu2/
+add ssh hba ipv4-address frw-belkk.gestao public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAADAQABAAABAQCU1mqARN+zQLVAXqTcNu57bZIqRgMgMPAzzHlrvT4Y/5dFaRSDdqhCbsJa9/vVZqmKHNnvasXX8M66yyX+TCMqPS3tV9xNWEYqQwcm2J42MBLc87iurULqpA0FeCptzX1bhhEYKIDMBlcN3Fgw7s9atNSTLlQA6rrmoy5bDSmfX7ATD7As0bD4iqCdMGlC/NfcEHFjfhy31cC26Csrw2FARwGDUsg4LINOSEa2JDGTF3/pRbH8a9DC9WiBwQB6dscwx60LfaRpU0z8ZD16L/GdNCahI+qlbM5/T8jAx3I8YG5yzg97+8EMF0JS4zhnLH+4Weo2H6d0wd5pOfqRVu2/
+add ssh hba ipv4-address 10.100.150.2 public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAADAQABAAABAQDljhePLOp4rVB8YShZzd3P89yOsewXzOV0erm7KeTbRfpLuaGI+sQOmCLplAVvjVXpbcdZHvyXZbeTB3uCmWnd9aodaknwj4uYxOrw1VuD2UW+431MxlSeBi+XHTgSm7mkc/mJCSsCAJsE5wAPS9h4TfAstxnkcqJcPLlbgVLhxMCerC4ZmRF4PbkVOeS02xwvFare9RJPbrds16LiTpsCgqqiEL8njyQZwjFuTrGGFrz5gN+RyGlypEgrEMK0bdg0AUGn3D3QisueQPuNdOEBveCzpm9LB6iu1KjipiToZdUJOPeDXo4eKus9kPvVb3E5wx40dcKYNty1B9S021od
+add ssh hba ipv4-address 10.100.150.1 public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAADAQABAAABAQCGo4yR4FDlCuRL8slampVIrET+A8M1fASOW4HjVg4ybVX6iZwhKr2Mpt2v4/23I0wWU3cqIxha7pK2Vd74nRZLJeqxdVbEA9c9y8ZFZSQnhGVY0C2o17VLaToaCYfLmYv+uQ+/+vX3+7mIPwi7yuqLSTjOW0ThdaklnDEI/dva7dlcElqersOIr+q8dcOg7+pMZZ6tNE9ip8VQFdzcSuo4QwLhTmzjMW+SGfuUKmhXXzQjcvnLZa5ajei5QWBUV2PXq7dXkUMa+MrzSD/RGBR+26Dghr+cxRi+7uEUvykfHuEy5WSJ9Rrnt3zNq0JdDO+vEnRmFHjFsWVOF1ULkLFx
+add ssh hba ipv4-address 192.168.3.10 public-key access-mode standalone encoded-data AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFRlRQGt5q0n+BgBKTgwH25ucRKf8/WLz4sXlKwS1G7QCNTW2+iBqW76ichiYouSlyFOpMyAjSANTYbgZEAVI4U=
+add ssh hba ipv4-address 192.168.3.50 public-key access-mode standalone encoded-data AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBAVFV1XSL3NmJwnAUk4RTuD6zb4m9Oss4M1gb8Uq6ghWcTdlMv4Qbwooj2YC0zLOPvKjBL12bcaeJVKBp+Iv1QM=
+add ssh hba ipv4-address 172.102.158.35 public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAABEQAAAQEAnNzfNR7wxlDhW81APPxyitUKMA4p/M/Ycb2SSXq5pwz6kRFOtn20cSNWlBuLuYuki5AumP3i8hUvXftF+5yMbmwb8L/vgUHOk9cKmArMR0yZa8o2UF7b51NulONtMYACDXYwv/KjHstLIvCj9YR7xNRjmxlEArh6YhgkL6b2Vum2Sdk0MJ/z3NPJg1qOC5aPoNs23RBP6v2pp9g/xMt1cSBWJmTKFLgn4ejkEbZI/hF//5MHPnbKntub5dSyTKSDZUp/9d0rHSLghynQW/Az0+kISjfywUu84eMtsNU7xGnc9RPwluahsXu91LT5+3DFH5jdr3rKPrqzqWY1blYfzQ==
+add ssh hba ipv4-address sftp.ott.checkpoint.com public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAABEQAAAQEAnNzfNR7wxlDhW81APPxyitUKMA4p/M/Ycb2SSXq5pwz6kRFOtn20cSNWlBuLuYuki5AumP3i8hUvXftF+5yMbmwb8L/vgUHOk9cKmArMR0yZa8o2UF7b51NulONtMYACDXYwv/KjHstLIvCj9YR7xNRjmxlEArh6YhgkL6b2Vum2Sdk0MJ/z3NPJg1qOC5aPoNs23RBP6v2pp9g/xMt1cSBWJmTKFLgn4ejkEbZI/hF//5MHPnbKntub5dSyTKSDZUp/9d0rHSLghynQW/Az0+kISjfywUu84eMtsNU7xGnc9RPwluahsXu91LT5+3DFH5jdr3rKPrqzqWY1blYfzQ==
+add ssh hba ipv4-address 10.100.250.1 public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAADAQABAAABAQDR5/Q2P5/zIGGuPAgYySsez+a798y2B8y3BFuOhIiBjhfa3zA0jWGaGdlkogYYlpTjDvRhStuKAMx7iek1IYCxZM9iWNhCqcw2e7I7fWx9rlfD+7h/Vd7AuBY1P3tNtshWlgK7uXn65/0Vm47S7yHBD/xaii/C8Kntv0XRrp+N27Mfnlbp0F/x22SaBz/TGa0nBsXJsprADH+Ax8gC8ybk3QyeexdhVksuHDEp8IiJvcRKrSrBX81f+3uJbfiviAhHC0lKwsoWrPqJfwksdbzZynP3/IZBxkBAreqaAdJqCmLGZRIkA4tMuo3P9GW7pJe1kRCfBfOd8u/A6LDo12rN
+add ssh hba ipv4-address fairfax.ott.checkpoint.com public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAABEQAAAQEAnNzfNR7wxlDhW81APPxyitUKMA4p/M/Ycb2SSXq5pwz6kRFOtn20cSNWlBuLuYuki5AumP3i8hUvXftF+5yMbmwb8L/vgUHOk9cKmArMR0yZa8o2UF7b51NulONtMYACDXYwv/KjHstLIvCj9YR7xNRjmxlEArh6YhgkL6b2Vum2Sdk0MJ/z3NPJg1qOC5aPoNs23RBP6v2pp9g/xMt1cSBWJmTKFLgn4ejkEbZI/hF//5MHPnbKntub5dSyTKSDZUp/9d0rHSLghynQW/Az0+kISjfywUu84eMtsNU7xGnc9RPwluahsXu91LT5+3DFH5jdr3rKPrqzqWY1blYfzQ==
+add ssh hba ipv4-address 195.23.55.36 public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAADAQABAAAAgn6N99zK8Y+YGPe5MQyNHbNOKHJKRf7e8rJ3ApacTE0I9br7N9oWqJ+ssLme88cWU9zqoDfZTcAiIW4l055J53+QdFwOWs8EdMhr1joCPOy5NTrl1D3WDlVKPLEKVCU8RPtwy+XA85TAw2Jq1L4OHffX8tfD9jo63U8cbOra6xR0u5k=
+add ssh hba ipv4-address 189.16.227.146 public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAADAQABAAABAQCuMqyd0TqqfOB12cxmeYOlqYMZz7OeSzpOLNBd2OHxMadBbWofUq9+2B7XGg3+w/XR/9lK8rxidN2RY4YMTsqjqKm739ZtBtedgKHOGt5qDwSlekYU2cl2AfYDQf90M+7L36L+AJxKDYn8R+vSWi9pqiEwOw3kpAIkD9qOKg+xhpqRTosSmhvtEjSn7kjVfdvbKbY6Hol9TSFnSzzQORKX5J25HrDQLcXIIDuEI3tq/Yq+VGGzSdlgyFneJ+bKTqMT2cpUvcxUMYrXR9orMcU6FKB6csWfsbshh53qVIp9a7pPfvwcccU3o6uzsLBC1gL6g7OZzJBg6ZEmSQpi97l9
+add ssh hba ipv4-address 195.23.40.180 public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAADAQABAAABAQC9//xFmJ7B5MI2OIk+AMJFujORn9Eg1EdJWJPuuUfVlv2xFSxQjD9Ou5ockATUzDHLbcN7WiwbjVlAxLVzBAe1w6MPzm8O9S0LCkmNXRBrOfB6T5k+wkK7kxud3smZ6Y5FEHT3xK2E/ijrFjozquh+1OSTlPzLXvNSxe5eGN72ILkCn5DkDqJE7CKH728OjdGfy0ZGa0GLLx2yu5ylq5z8HhscsZrqEAkWD7wVEWP2OA613CvSizMXO7d4pzlih+XPb7tLMgBqAWMVfu7jMg2P8y/LB8AdtLsMltX6ljlv26GvuFt4YuGkWJRPGwyzdaxxfr9JCbVhJjSD0DJI5R+/
+add ssh hba ipv4-address 213.205.68.60 public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAADAQABAAABAQCksZwzBTT0pZzi8H+Z1TBkl2DKCRIQ5a/Rm6NtdJja+njVTpk9+DTRoDzvGfox1+n6Nqbt+I904lOQiggKAWr0U2Z/GihkIMYRxqhvl59MeOTn1dTuDAR0LkHRWCL7mSGbVK1bvtqIsgjyKSay8srMlhuAQLcjo/cGsoxgRa80sHx8zYboveTlixDlVdLHh907VnAFj21K8cHmB4v9RrgXOQn/rEUDanmowHREt8/p4Hiw7YYYA3IetQKaIkezceIq+FV6QQxxw4eLz/2iQAiGpLX0wZzdWUU9NOl75XPwwAj5a91ZsNhWIJF3awFZJuFom840enHmtT6ITaIj9KCt
+add ssh hba ipv4-address 195.23.40.222 public-key access-mode standalone encoded-data AAAAB3NzaC1yc2EAAAADAQABAAABAQCkQfA+uirCupDyLsV0fKLYLy5103ooo4VXG4de2L3NMYh1rtuOYf7EzXWQ8RTFkR2/6HZ8h7fMqKSYytv8AyrYGrTloWYzPa7Nu0PcA+29gmTWwuPgiE7mXmeKnEiM9VFCx2qcn15WlgxJd66E0LBIog2YjvDqdZk4ykMHoNv5YKHyzGZubwaatZj+Ux/NSbKd7YYW2G12HEDMCXgvcy817Jmgd8XDrEwlF8uBIs/WJ9vgQ/qSBm71nHnIVkdYDp/m9F7LCK/md/JXiy/zzeUsEGAzaacOE7COaMo4O0ZgAmV+qi2P0gX2+7dwAsSeOo/vzzggGwyhm4Y/e1gSxXGh
+    set syslog filename /var/log/messages
+set syslog cplogs off
+set syslog mgmtauditlogs on
+set syslog auditlog permanent
+set syslog uncompressmessages off
+set timezone Europe / Lisbon
+set ssl tls TLSv1 off
+set ssl tls TLSv1.1 off
+set ssl tls TLSv1.2 on
+set ssl tls TLSv1.3 off
+add vpn tunnel 1 type numbered local 100.126.0.34 remote 100.64.18.25 peer gw_LSYH1
+add vpn tunnel 2 type numbered local 100.126.0.50 remote 100.64.18.29 peer gw_LSYH2
+add vpn tunnel 11 type numbered local 100.126.0.66 remote 169.254.133.65 peer AWS_Tunnel1
+add vpn tunnel 12 type numbered local 100.126.0.82 remote 169.254.54.209 peer AWS_Tunnel2
+add vpn tunnel 21 type numbered local 100.126.0.98 remote 169.254.128.133 peer gw_AMOSgcp-1
+add vpn tunnel 22 type numbered local 100.126.0.114 remote 169.254.206.33 peer gw_AMOSgcp-2
+add vpn tunnel 23 type numbered local 100.126.0.226 remote 169.254.229.109 peer gw_AMOSgcpPGA-1
+add vpn tunnel 24 type numbered local 100.126.0.242 remote 169.254.73.165 peer gw_AMOSgcpPGA-2
+add vpn tunnel 31 type numbered local 100.126.0.130 remote 169.254.140.101 peer gw_AWSinform-1
+add vpn tunnel 32 type numbered local 100.126.0.146 remote 169.254.198.145 peer gw_AWSinform-2
+add vpn tunnel 33 type numbered local 100.126.0.162 remote 169.254.236.77 peer gw_AWSinformDEV-1
+add vpn tunnel 34 type numbered local 100.126.0.178 remote 169.254.231.45 peer gw_AWSinformDEV-2
+add vpn tunnel 41 type numbered local 100.126.0.18 remote 169.254.189.133 peer gw_AWSmybag-1
+add vpn tunnel 42 type numbered local 100.126.0.210 remote 169.254.80.93 peer gw_AWSmybag-2
+set interface bond1 state on
+add interface bond1 vlan 2
+set interface bond1 state on
+add interface bond1 vlan 3
+set interface bond1 state on
+add interface bond1 vlan 4
+set interface bond1 state on
+add interface bond1 vlan 8
+set interface bond1 state on
+add interface bond1 vlan 10
+set interface bond1 state on
+add interface bond1 vlan 11
+set interface bond1 state on
+add interface bond1 vlan 12
+set interface bond1 state on
+add interface bond1 vlan 18
+set interface bond1 state on
+add interface bond1 vlan 19
+set interface bond1 state on
+add interface bond1 vlan 21
+set interface bond1 state on
+add interface bond1 vlan 22
+set interface bond1 state on
+add interface bond1 vlan 35
+set interface bond1 state on
+add interface bond1 vlan 55
+set interface bond1 state on
+add interface bond1 vlan 68
+set interface bond1 state on
+add interface bond1 vlan 71
+set interface bond1 state on
+add interface bond1 vlan 72
+set interface bond1 state on
+add interface bond1 vlan 74
+set interface bond1 state on
+add interface bond1 vlan 76
+set interface bond1 state on
+add interface bond1 vlan 81
+set interface bond1 state on
+add interface bond1 vlan 85
+set interface bond1 state on
+add interface bond1 vlan 101
+set interface bond1 state on
+add interface bond1 vlan 102
+set interface bond1 state on
+add interface bond1 vlan 104
+set interface bond1 state on
+add interface bond1 vlan 106
+set interface bond1 state on
+add interface bond1 vlan 111
+set interface bond1 state on
+add interface bond1 vlan 112
+set interface bond1 state on
+add interface bond1 vlan 191
+set interface bond1 state on
+add interface bond1 vlan 200
+set interface bond1 state on
+add interface bond1 vlan 212
+set interface bond1 state on
+add interface bond1 vlan 213
+set interface bond1 state on
+add interface bond1 vlan 214
+set interface bond1 state on
+add interface bond1 vlan 215
+set interface bond1 state on
+add interface bond1 vlan 219
+set interface bond1 state on
+add interface bond1 vlan 402
+set interface bond1 state on
+add interface bond1 vlan 404
+set interface bond1 state on
+add interface bond1 vlan 426
+set interface bond1 state on
+add interface bond1 vlan 427
+set interface bond1 state on
+add interface bond1 vlan 428
+set interface bond1 state on
+add interface bond1 vlan 430
+set interface bond1 state on
+add interface bond1 vlan 431
+set interface bond1 state on
+add interface bond1 vlan 432
+set interface bond1 state on
+add interface bond1 vlan 433
+set interface bond1 state on
+add interface bond1 vlan 434
+set interface bond1 state on
+add interface bond1 vlan 435
+set interface bond1 state on
+add interface bond1 vlan 440
+set interface bond1 state on
+add interface bond1 vlan 441
+set interface bond1 state on
+add interface bond1 vlan 445
+set interface bond1 state on
+add interface bond1 vlan 448
+set interface bond1 state on
+add interface bond1 vlan 449
+set interface bond1 state on
+add interface bond1 vlan 455
+set interface bond1 state on
+add interface bond1 vlan 461
+set interface bond1 state on
+add interface bond1 vlan 462
+set interface bond1 state on
+add interface bond1 vlan 463
+set interface bond1 state on
+add interface bond1 vlan 502
+set interface bond1 state on
+add interface bond1 vlan 503
+set interface bond1 state on
+add interface bond1 vlan 505
+set interface bond1 state on
+add interface bond1 vlan 506
+set interface bond1 state on
+add interface bond1 vlan 509
+set interface bond1 state on
+add interface bond1 vlan 510
+set interface bond1 state on
+add interface bond1 vlan 511
+set interface bond1 state on
+add interface bond1 vlan 512
+set interface bond1 state on
+add interface bond1 vlan 513
+set interface bond1 state on
+add interface bond1 vlan 514
+set interface bond1 state on
+add interface bond1 vlan 515
+set interface bond1 state on
+add interface bond1 vlan 520
+set interface bond1 state on
+add interface bond1 vlan 523
+set interface bond1 state on
+add interface bond1 vlan 524
+set interface bond1 state on
+add interface bond1 vlan 525
+set interface bond1 state on
+add interface bond1 vlan 526
+set interface bond1 state on
+add interface bond1 vlan 529
+set interface bond1 state on
+add interface bond1 vlan 530
+set interface bond1 state on
+add interface bond1 vlan 531
+set interface bond1 state on
+add interface bond1 vlan 533
+set interface bond1 state on
+add interface bond1 vlan 535
+set interface bond1 state on
+add interface bond1 vlan 539
+set interface bond1 state on
+add interface bond1 vlan 581
+set interface bond1 state on
+add interface bond1 vlan 582
+set interface bond1 state on
+add interface bond1 vlan 585
+set interface bond1 state on
+add interface bond1 vlan 590
+set interface bond1 state on
+add interface bond1 vlan 800
+set interface bond1 state on
+add interface bond1 vlan 801
+set interface bond1 state on
+add interface bond1 vlan 802
+set interface bond1 state on
+add interface bond1 vlan 803
+set interface bond1 state on
+add interface bond1 vlan 804
+set interface bond1 state on
+add interface bond1 vlan 805
+set interface bond1 state on
+add interface bond1 vlan 806
+set interface bond1 state on
+add interface bond1 vlan 807
+set interface bond1 state on
+add interface bond1 vlan 809
+set interface bond1 state on
+add interface bond1 vlan 810
+set interface bond1 state on
+add interface bond1 vlan 811
+set interface bond1 state on
+add interface bond1 vlan 812
+set interface bond1 state on
+add interface bond1 vlan 815
+set interface bond1 state on
+add interface bond1 vlan 816
+set interface bond1 state on
+add interface bond1 vlan 817
+set interface bond1 state on
+add interface bond1 vlan 819
+set interface bond1 state on
+add interface bond1 vlan 820
+set interface bond1 state on
+add interface bond1 vlan 821
+set interface bond1 state on
+add interface bond1 vlan 822
+set interface bond1 state on
+add interface bond1 vlan 823
+set interface bond1 state on
+add interface bond1 vlan 824
+set interface bond1 state on
+add interface bond1 vlan 825
+set interface bond1 state on
+add interface bond1 vlan 826
+set interface bond1 state on
+add interface bond1 vlan 828
+set interface bond1 state on
+add interface bond1 vlan 829
+set interface bond1 state on
+add interface bond1 vlan 830
+set interface bond1 state on
+add interface bond1 vlan 831
+set interface bond1 state on
+add interface bond1 vlan 832
+set interface bond1 state on
+add interface bond1 vlan 835
+set interface bond1 state on
+add interface bond1 vlan 838
+set interface bond1 state on
+add interface bond1 vlan 839
+set interface bond1 state on
+add interface bond1 vlan 840
+set interface bond1 state on
+add interface bond1 vlan 841
+set interface bond1 state on
+add interface bond1 vlan 844
+set interface bond1 state on
+add interface bond1 vlan 845
+set interface bond1 state on
+add interface bond1 vlan 846
+set interface bond1 state on
+add interface bond1 vlan 847
+set interface bond1 state on
+add interface bond1 vlan 851
+set interface bond1 state on
+add interface bond1 vlan 854
+set interface bond1 state on
+add interface bond1 vlan 856
+set interface bond1 state on
+add interface bond1 vlan 857
+set interface bond1 state on
+add interface bond1 vlan 858
+set interface bond1 state on
+add interface bond1 vlan 859
+set interface bond1 state on
+add interface bond1 vlan 873
+set interface bond1 state on
+add interface bond1 vlan 875
+set interface bond1 state on
+add interface bond1 vlan 881
+set interface bond1 state on
+add interface bond1 vlan 889
+set interface bond1 state on
+add interface bond1 vlan 900
+set interface bond1 state on
+add interface bond1 vlan 901
+set interface bond1 state on
+add interface bond1 vlan 902
+set interface bond1 state on
+add interface bond1 vlan 903
+set interface bond1 state on
+add interface bond1 vlan 904
+set interface bond1 state on
+add interface bond1 vlan 908
+set interface bond1 state on
+add interface bond1 vlan 909
+set interface bond1 state on
+add interface bond1 vlan 910
+set interface bond1 state on
+add interface bond1 vlan 911
+set interface bond1 state on
+add interface bond1 vlan 917
+set interface bond1 state on
+add interface bond1 vlan 918
+set interface bond1 state on
+add interface bond1 vlan 920
+set interface bond1 state on
+add interface bond1 vlan 925
+set interface bond1 state on
+add interface bond1 vlan 926
+set interface bond1 state on
+add interface bond1 vlan 928
+set interface bond1 state on
+add interface bond1 vlan 929
+set interface bond1 state on
+add interface bond1 vlan 941
+set interface bond1 state on
+add interface bond1 vlan 962
+set interface bond1 state on
+add interface bond1 vlan 971
+set interface bond1 state on
+add interface bond1 vlan 972
+set interface bond1 state on
+add interface bond1 vlan 973
+set interface bond1 state on
+add interface bond1 vlan 974
+set interface bond1 state on
+add interface bond1 vlan 975
+set interface bond1 state on
+add interface bond1 vlan 979
+set interface bond1 state on
+add interface bond1 vlan 980
+set interface bond1 state on
+add interface bond1 vlan 981
+set interface bond1 state on
+add interface bond1 vlan 982
+set interface bond1 state on
+add interface bond1 vlan 983
+set interface bond1 state on
+add interface bond1 vlan 984
+set interface bond1 state on
+add interface bond1 vlan 985
+set interface bond1 state on
+add interface bond1 vlan 987
+set interface bond1 state on
+add interface bond1 vlan 988
+set interface bond1 state on
+add interface bond1 vlan 1100
+set interface bond1 state on
+add interface bond1 vlan 1101
+set interface bond1 state on
+add interface bond1 vlan 1102
+set interface bond1 state on
+add interface bond1 vlan 1128
+set interface bond1 state on
+add interface bond1 vlan 1134
+set interface bond1 state on
+add interface bond1 vlan 1151
+set interface bond1 state on
+add interface bond1 vlan 1152
+set interface bond1 state on
+add interface bond1 vlan 1153
+set interface bond1 state on
+add interface bond1 vlan 1154
+set interface bond1 state on
+add interface bond1 vlan 1155
+set interface bond1 state on
+add interface bond1 vlan 1156
+set interface bond1 state on
+add interface bond1 vlan 1157
+set interface bond1 state on
+add interface bond1 vlan 1158
+set interface bond1 state on
+add interface bond1 vlan 1159
+set interface bond1 state on
+add interface bond1 vlan 1160
+set interface bond1 state on
+add interface bond1 vlan 1161
+set interface bond1 state on
+add interface bond1 vlan 1162
+set interface bond1 state on
+add interface bond1 vlan 1163
+set interface bond1 state on
+add interface bond1 vlan 1165
+set interface bond1 state on
+add interface bond1 vlan 1166
+set interface bond1 state on
+add interface bond1 vlan 1167
+set interface bond1 state on
+add interface bond1 vlan 1168
+set interface bond1 state on
+add interface bond1 vlan 1169
+set interface bond1 state on
+add interface bond1 vlan 1170
+set interface bond1 state on
+add interface bond1 vlan 1171
+set interface bond1 state on
+add interface bond1 vlan 1172
+set interface bond1 state on
+add interface bond1 vlan 1173
+set interface bond1 state on
+add interface bond1 vlan 1174
+set interface bond1 state on
+add interface bond1 vlan 1175
+set interface bond1 state on
+add interface bond1 vlan 1176
+set interface bond1 state on
+add interface bond1 vlan 1177
+set interface bond1 state on
+add interface bond1 vlan 1178
+set interface bond1 state on
+add interface bond1 vlan 1179
+set interface bond1 state on
+add interface bond1 vlan 1180
+set interface bond1 state on
+add interface bond1 vlan 1181
+set interface bond1 state on
+add interface bond1 vlan 1182
+set interface bond1 state on
+add interface bond1 vlan 1184
+set interface bond1 state on
+add interface bond1 vlan 1185
+set interface bond1 state on
+add interface bond1 vlan 1186
+set interface bond1 state on
+add interface bond1 vlan 1187
+set interface bond1 state on
+add interface bond1 vlan 1188
+set interface bond1 state on
+add interface bond1 vlan 1189
+set interface bond1 state on
+add interface bond1 vlan 1192
+set interface bond1 state on
+add interface bond1 vlan 1193
+set interface bond1 state on
+add interface bond1 vlan 3900
+set interface bond1 state on
+add interface bond1 vlan 3902
+set interface bond1 state on
+add interface bond1 vlan 3904
+set interface bond2 state on
+add interface bond2 vlan 700
+set interface bond2 state on
+add interface bond2 vlan 701
+set interface eth1-03 state on
+add interface eth1-03 vlan 216
+set interface eth4-01 state on
+add interface eth4-01 vlan 220
+set interface eth4-01 state on
+add interface eth4-01 vlan 520
+set interface eth4-02 state on
+add interface eth4-02 vlan 221
+set interface eth4-02 state on
+add interface eth4-02 vlan 520
+set interface eth4-03 state on
+add interface eth4-03 vlan 217
+set interface eth4-03 state on
+add interface eth4-03 vlan 520
+set interface eth4-04 state on
+add interface eth4-04 vlan 218
+set interface eth4-04 state on
+add interface eth4-04 vlan 520
+set interface eth1-01 state on
+set interface eth1-02 state on
+set interface eth2-04 state on
+set interface eth2-08 state on
+set interface eth3-01 state on
+set interface eth3-02 state on
+set interface Mgmt link-speed 1000M/full
+set interface Mgmt state on
+set interface Mgmt auto-negotiation on
+set interface Mgmt ipv4-address 192.168.3.11 mask-length 26
+set interface Sync link-speed 1000M/full
+set interface Sync state off
+set interface Sync mtu 1500
+set interface bond1 comments "Bond_1"
+set interface bond1 state on
+set interface bond1.2 state on
+set interface bond1.2 mtu 1500
+set interface bond1.2 ipv4-address 100.126.0.130 mask-length 28
+set interface bond1.3 state on
+set interface bond1.3 mtu 1500
+set interface bond1.3 ipv4-address 100.126.5.242 mask-length 28
+set interface bond1.4 state on
+set interface bond1.4 mtu 1500
+set interface bond1.4 ipv4-address 100.126.0.18 mask-length 28
+set interface bond1.8 state on
+set interface bond1.8 mtu 1500
+set interface bond1.8 ipv4-address 100.126.1.34 mask-length 28
+set interface bond1.10 state on
+set interface bond1.10 mtu 1500
+set interface bond1.10 ipv4-address 100.126.0.2 mask-length 28
+set interface bond1.11 state on
+set interface bond1.11 mtu 1500
+set interface bond1.11 ipv4-address 100.126.0.2 mask-length 28
+set interface bond1.12 state on
+set interface bond1.12 mtu 1500
+set interface bond1.12 ipv4-address 100.126.0.178 mask-length 28
+set interface bond1.18 state on
+set interface bond1.18 mtu 1500
+set interface bond1.18 ipv4-address 100.126.1.194 mask-length 28
+set interface bond1.19 state on
+set interface bond1.19 mtu 1500
+set interface bond1.19 ipv4-address 100.126.0.114 mask-length 28
+set interface bond1.21 state on
+set interface bond1.21 mtu 1500
+set interface bond1.21 ipv4-address 100.126.0.98 mask-length 28
+set interface bond1.22 state on
+set interface bond1.22 mtu 1500
+set interface bond1.22 ipv4-address 100.126.0.82 mask-length 28
+set interface bond1.35 state on
+set interface bond1.35 mtu 1500
+set interface bond1.35 ipv4-address 100.126.1.82 mask-length 28
+set interface bond1.55 state on
+set interface bond1.55 mtu 1500
+set interface bond1.55 ipv4-address 100.126.2.18 mask-length 28
+set interface bond1.68 state on
+set interface bond1.68 mtu 1500
+set interface bond1.68 ipv4-address 100.126.0.242 mask-length 28
+set interface bond1.71 state on
+set interface bond1.71 mtu 1500
+set interface bond1.71 ipv4-address 100.126.0.34 mask-length 28
+set interface bond1.72 state on
+set interface bond1.72 mtu 1500
+set interface bond1.72 ipv4-address 100.126.0.34 mask-length 28
+set interface bond1.74 state on
+set interface bond1.74 mtu 1500
+set interface bond1.74 ipv4-address 100.126.0.50 mask-length 28
+set interface bond1.76 state on
+set interface bond1.76 mtu 1500
+set interface bond1.76 ipv4-address 100.126.0.114 mask-length 28
+set interface bond1.81 state on
+set interface bond1.81 mtu 1500
+set interface bond1.81 ipv4-address 100.126.1.2 mask-length 28
+set interface bond1.85 state on
+set interface bond1.85 mtu 1500
+set interface bond1.85 ipv4-address 100.126.1.210 mask-length 28
+set interface bond1.101 state on
+set interface bond1.101 mtu 1500
+set interface bond1.101 ipv4-address 100.126.0.50 mask-length 28
+set interface bond1.102 state on
+set interface bond1.102 mtu 1500
+set interface bond1.102 ipv4-address 100.126.0.34 mask-length 28
+set interface bond1.104 state on
+set interface bond1.104 mtu 1500
+set interface bond1.104 ipv4-address 100.126.0.66 mask-length 28
+set interface bond1.106 state on
+set interface bond1.106 mtu 1500
+set interface bond1.106 ipv4-address 100.126.0.18 mask-length 28
+set interface bond1.111 state on
+set interface bond1.111 mtu 1500
+set interface bond1.111 ipv4-address 100.126.0.242 mask-length 28
+set interface bond1.112 state on
+set interface bond1.112 mtu 1500
+set interface bond1.112 ipv4-address 100.126.0.18 mask-length 28
+set interface bond1.191 state on
+set interface bond1.191 mtu 1500
+set interface bond1.191 ipv4-address 100.126.0.2 mask-length 28
+set interface bond1.200 state on
+set interface bond1.200 mtu 1500
+set interface bond1.200 ipv4-address 100.126.0.162 mask-length 28
+set interface bond1.212 state on
+set interface bond1.212 mtu 1500
+set interface bond1.212 ipv4-address 100.126.0.2 mask-length 28
+set interface bond1.213 state on
+set interface bond1.213 mtu 1500
+set interface bond1.213 ipv4-address 100.126.0.50 mask-length 28
+set interface bond1.214 state on
+set interface bond1.214 mtu 1500
+set interface bond1.214 ipv4-address 100.126.0.66 mask-length 28
+set interface bond1.215 state on
+set interface bond1.215 mtu 1500
+set interface bond1.215 ipv4-address 100.126.0.50 mask-length 28
+set interface bond1.219 state on
+set interface bond1.219 mtu 1500
+set interface bond1.219 ipv4-address 100.126.1.66 mask-length 28
+set interface bond1.402 state on
+set interface bond1.402 mtu 1500
+set interface bond1.402 ipv4-address 100.126.0.226 mask-length 28
+set interface bond1.404 state on
+set interface bond1.404 mtu 1500
+set interface bond1.404 ipv4-address 100.126.0.130 mask-length 28
+set interface bond1.426 state on
+set interface bond1.426 mtu 1500
+set interface bond1.426 ipv4-address 100.126.0.50 mask-length 28
+set interface bond1.427 state on
+set interface bond1.427 mtu 1500
+set interface bond1.427 ipv4-address 100.126.0.146 mask-length 28
+set interface bond1.428 state on
+set interface bond1.428 mtu 1500
+set interface bond1.428 ipv4-address 100.126.0.82 mask-length 28
+set interface bond1.430 state on
+set interface bond1.430 mtu 1500
+set interface bond1.430 ipv4-address 100.126.0.66 mask-length 28
+set interface bond1.431 state on
+set interface bond1.431 mtu 1500
+set interface bond1.431 ipv4-address 100.126.0.82 mask-length 28
+set interface bond1.432 state on
+set interface bond1.432 mtu 1500
+set interface bond1.432 ipv4-address 100.126.0.82 mask-length 28
+set interface bond1.433 state on
+set interface bond1.433 mtu 1500
+set interface bond1.433 ipv4-address 100.126.0.98 mask-length 28
+set interface bond1.434 state on
+set interface bond1.434 mtu 1500
+set interface bond1.434 ipv4-address 100.126.0.114 mask-length 28
+set interface bond1.435 state on
+set interface bond1.435 mtu 1500
+set interface bond1.435 ipv4-address 100.126.0.98 mask-length 28
+set interface bond1.440 state on
+set interface bond1.440 mtu 1500
+set interface bond1.440 ipv4-address 100.126.0.162 mask-length 28
+set interface bond1.441 state on
+set interface bond1.441 mtu 1500
+set interface bond1.441 ipv4-address 100.126.0.178 mask-length 28
+set interface bond1.445 state on
+set interface bond1.445 mtu 1500
+set interface bond1.445 ipv4-address 100.126.0.194 mask-length 28
+set interface bond1.448 state on
+set interface bond1.448 mtu 1500
+set interface bond1.448 ipv4-address 100.126.0.210 mask-length 28
+set interface bond1.449 state on
+set interface bond1.449 mtu 1500
+set interface bond1.449 ipv4-address 100.126.0.226 mask-length 28
+set interface bond1.455 state on
+set interface bond1.455 mtu 1500
+set interface bond1.455 ipv4-address 100.126.0.18 mask-length 28
+set interface bond1.461 state on
+set interface bond1.461 mtu 1500
+set interface bond1.461 ipv4-address 100.126.0.66 mask-length 28
+set interface bond1.462 state on
+set interface bond1.462 mtu 1500
+set interface bond1.462 ipv4-address 100.126.0.146 mask-length 28
+set interface bond1.463 state on
+set interface bond1.463 mtu 1500
+set interface bond1.463 ipv4-address 100.126.1.50 mask-length 28
+set interface bond1.502 state on
+set interface bond1.502 mtu 1500
+set interface bond1.502 ipv4-address 100.126.1.146 mask-length 28
+set interface bond1.503 state on
+set interface bond1.503 mtu 1500
+set interface bond1.503 ipv4-address 100.126.0.50 mask-length 28
+set interface bond1.505 state on
+set interface bond1.505 mtu 1500
+set interface bond1.505 ipv4-address 100.126.1.130 mask-length 28
+set interface bond1.506 state on
+set interface bond1.506 mtu 1500
+set interface bond1.506 ipv4-address 100.126.1.66 mask-length 28
+set interface bond1.509 state on
+set interface bond1.509 mtu 1500
+set interface bond1.509 ipv4-address 100.126.1.226 mask-length 28
+set interface bond1.510 state on
+set interface bond1.510 mtu 1500
+set interface bond1.510 ipv4-address 100.126.0.130 mask-length 28
+set interface bond1.511 state on
+set interface bond1.511 mtu 1500
+set interface bond1.511 ipv4-address 100.126.0.242 mask-length 28
+set interface bond1.512 state on
+set interface bond1.512 mtu 1500
+set interface bond1.512 ipv4-address 100.126.0.2 mask-length 28
+set interface bond1.513 state on
+set interface bond1.513 mtu 1500
+set interface bond1.513 ipv4-address 100.126.0.66 mask-length 28
+set interface bond1.514 state on
+set interface bond1.514 mtu 1500
+set interface bond1.514 ipv4-address 100.126.1.178 mask-length 28
+set interface bond1.515 state on
+set interface bond1.515 mtu 1500
+set interface bond1.515 ipv4-address 100.126.0.34 mask-length 28
+set interface bond1.520 state on
+set interface bond1.520 mtu 1500
+set interface bond1.520 ipv4-address 100.126.1.114 mask-length 28
+set interface bond1.523 state on
+set interface bond1.523 mtu 1500
+set interface bond1.523 ipv4-address 100.126.1.34 mask-length 28
+set interface bond1.524 state on
+set interface bond1.524 mtu 1500
+set interface bond1.524 ipv4-address 100.126.1.98 mask-length 28
+set interface bond1.525 state on
+set interface bond1.525 mtu 1500
+set interface bond1.525 ipv4-address 100.126.2.2 mask-length 28
+set interface bond1.526 state on
+set interface bond1.526 mtu 1500
+set interface bond1.526 ipv4-address 100.126.1.242 mask-length 28
+set interface bond1.529 state on
+set interface bond1.529 mtu 1500
+set interface bond1.529 ipv4-address 100.126.0.194 mask-length 28
+set interface bond1.530 state on
+set interface bond1.530 mtu 1500
+set interface bond1.530 ipv4-address 100.126.1.2 mask-length 28
+set interface bond1.531 state on
+set interface bond1.531 mtu 1500
+set interface bond1.531 ipv4-address 100.126.1.114 mask-length 28
+set interface bond1.533 state on
+set interface bond1.533 mtu 1500
+set interface bond1.533 ipv4-address 100.126.0.146 mask-length 28
+set interface bond1.535 state on
+set interface bond1.535 mtu 1500
+set interface bond1.535 ipv4-address 100.126.0.210 mask-length 28
+set interface bond1.539 state on
+set interface bond1.539 mtu 1500
+set interface bond1.539 ipv4-address 100.126.0.98 mask-length 28
+set interface bond1.581 state on
+set interface bond1.581 mtu 1500
+set interface bond1.581 ipv4-address 100.126.1.162 mask-length 28
+set interface bond1.582 state on
+set interface bond1.582 mtu 1500
+set interface bond1.582 ipv4-address 100.126.1.18 mask-length 28
+set interface bond1.585 state on
+set interface bond1.585 mtu 1500
+set interface bond1.585 ipv4-address 100.126.0.18 mask-length 28
+set interface bond1.590 state on
+set interface bond1.590 mtu 1500
+set interface bond1.590 ipv4-address 100.126.1.18 mask-length 28
+set interface bond1.800 state on
+set interface bond1.800 mtu 1500
+set interface bond1.800 ipv4-address 100.126.0.162 mask-length 28
+set interface bond1.801 state on
+set interface bond1.801 mtu 1500
+set interface bond1.801 ipv4-address 100.126.0.162 mask-length 28
+set interface bond1.802 state on
+set interface bond1.802 mtu 1500
+set interface bond1.802 ipv4-address 100.126.1.98 mask-length 28
+set interface bond1.803 state on
+set interface bond1.803 mtu 1500
+set interface bond1.803 ipv4-address 100.126.1.2 mask-length 28
+set interface bond1.804 state on
+set interface bond1.804 mtu 1500
+set interface bond1.804 ipv4-address 100.126.0.194 mask-length 28
+set interface bond1.805 state on
+set interface bond1.805 mtu 1500
+set interface bond1.805 ipv4-address 100.126.0.50 mask-length 28
+set interface bond1.806 state on
+set interface bond1.806 mtu 1500
+set interface bond1.806 ipv4-address 100.126.0.82 mask-length 28
+set interface bond1.807 state on
+set interface bond1.807 mtu 1500
+set interface bond1.807 ipv4-address 100.126.0.34 mask-length 28
+set interface bond1.809 state on
+set interface bond1.809 mtu 1500
+set interface bond1.809 ipv4-address 100.126.6.18 mask-length 28
+set interface bond1.810 state on
+set interface bond1.810 mtu 1500
+set interface bond1.810 ipv4-address 100.126.2.130 mask-length 28
+set interface bond1.811 state on
+set interface bond1.811 mtu 1500
+set interface bond1.811 ipv4-address 100.126.2.146 mask-length 28
+set interface bond1.812 state on
+set interface bond1.812 mtu 1500
+set interface bond1.812 ipv4-address 100.126.2.162 mask-length 28
+set interface bond1.815 state on
+set interface bond1.815 mtu 1500
+set interface bond1.815 ipv4-address 100.126.1.50 mask-length 28
+set interface bond1.816 state on
+set interface bond1.816 mtu 1500
+set interface bond1.816 ipv4-address 100.126.1.66 mask-length 28
+set interface bond1.817 state on
+set interface bond1.817 mtu 1500
+set interface bond1.817 ipv4-address 100.126.2.178 mask-length 28
+set interface bond1.819 state on
+set interface bond1.819 mtu 1500
+set interface bond1.819 ipv4-address 100.126.1.130 mask-length 28
+set interface bond1.820 state on
+set interface bond1.820 mtu 1500
+set interface bond1.820 ipv4-address 100.126.1.162 mask-length 28
+set interface bond1.821 state on
+set interface bond1.821 mtu 1500
+set interface bond1.821 ipv4-address 100.126.1.194 mask-length 28
+set interface bond1.822 state on
+set interface bond1.822 mtu 1500
+set interface bond1.822 ipv4-address 100.126.1.242 mask-length 28
+set interface bond1.823 state on
+set interface bond1.823 mtu 1500
+set interface bond1.823 ipv4-address 100.126.2.18 mask-length 28
+set interface bond1.824 state on
+set interface bond1.824 mtu 1500
+set interface bond1.824 ipv4-address 100.126.2.194 mask-length 28
+set interface bond1.825 state on
+set interface bond1.825 mtu 1500
+set interface bond1.825 ipv4-address 100.126.2.210 mask-length 28
+set interface bond1.826 state on
+set interface bond1.826 mtu 1500
+set interface bond1.826 ipv4-address 100.126.2.226 mask-length 28
+set interface bond1.828 state on
+set interface bond1.828 mtu 1500
+set interface bond1.828 ipv4-address 100.126.2.242 mask-length 28
+set interface bond1.829 state on
+set interface bond1.829 mtu 1500
+set interface bond1.829 ipv4-address 100.126.3.2 mask-length 28
+set interface bond1.830 state on
+set interface bond1.830 mtu 1500
+set interface bond1.830 ipv4-address 100.126.3.18 mask-length 28
+set interface bond1.831 state on
+set interface bond1.831 mtu 1500
+set interface bond1.831 ipv4-address 100.126.3.34 mask-length 28
+set interface bond1.832 state on
+set interface bond1.832 mtu 1500
+set interface bond1.832 ipv4-address 100.126.3.50 mask-length 28
+set interface bond1.835 state on
+set interface bond1.835 mtu 1500
+set interface bond1.835 ipv4-address 100.126.3.66 mask-length 28
+set interface bond1.838 state on
+set interface bond1.838 mtu 1500
+set interface bond1.838 ipv4-address 100.126.3.82 mask-length 28
+set interface bond1.839 state on
+set interface bond1.839 mtu 1500
+set interface bond1.839 ipv4-address 100.126.3.98 mask-length 28
+set interface bond1.840 state on
+set interface bond1.840 mtu 1500
+set interface bond1.840 ipv4-address 100.126.3.114 mask-length 28
+set interface bond1.841 state on
+set interface bond1.841 mtu 1500
+set interface bond1.841 ipv4-address 100.126.3.130 mask-length 28
+set interface bond1.844 state on
+set interface bond1.844 mtu 1500
+set interface bond1.844 ipv4-address 100.126.3.162 mask-length 28
+set interface bond1.845 state on
+set interface bond1.845 mtu 1500
+set interface bond1.845 ipv4-address 100.126.0.178 mask-length 28
+set interface bond1.846 state on
+set interface bond1.846 mtu 1500
+set interface bond1.846 ipv4-address 100.126.0.210 mask-length 28
+set interface bond1.847 state on
+set interface bond1.847 mtu 1500
+set interface bond1.847 ipv4-address 100.126.0.194 mask-length 28
+set interface bond1.851 state on
+set interface bond1.851 mtu 1500
+set interface bond1.851 ipv4-address 100.126.3.178 mask-length 28
+set interface bond1.854 state on
+set interface bond1.854 mtu 1500
+set interface bond1.854 ipv4-address 100.126.3.194 mask-length 28
+set interface bond1.856 state on
+set interface bond1.856 mtu 1500
+set interface bond1.856 ipv4-address 100.126.1.82 mask-length 28
+set interface bond1.857 state on
+set interface bond1.857 mtu 1500
+set interface bond1.857 ipv4-address 100.126.1.98 mask-length 28
+set interface bond1.858 state on
+set interface bond1.858 mtu 1500
+set interface bond1.858 ipv4-address 100.126.1.210 mask-length 28
+set interface bond1.859 state on
+set interface bond1.859 mtu 1500
+set interface bond1.859 ipv4-address 100.126.1.226 mask-length 28
+set interface bond1.873 state on
+set interface bond1.873 mtu 1500
+set interface bond1.873 ipv4-address 100.126.7.18 mask-length 28
+set interface bond1.875 state on
+set interface bond1.875 mtu 1500
+set interface bond1.875 ipv4-address 100.126.5.210 mask-length 28
+set interface bond1.881 state on
+set interface bond1.881 mtu 1500
+set interface bond1.881 ipv4-address 100.126.3.242 mask-length 28
+set interface bond1.889 state on
+set interface bond1.889 mtu 1500
+set interface bond1.889 ipv4-address 100.126.3.146 mask-length 28
+set interface bond1.900 state on
+set interface bond1.900 mtu 1500
+set interface bond1.900 ipv4-address 100.126.0.146 mask-length 28
+set interface bond1.901 state on
+set interface bond1.901 mtu 1500
+set interface bond1.901 ipv4-address 100.126.0.66 mask-length 28
+set interface bond1.902 state on
+set interface bond1.902 mtu 1500
+set interface bond1.902 ipv4-address 100.126.0.98 mask-length 28
+set interface bond1.903 state on
+set interface bond1.903 mtu 1500
+set interface bond1.903 ipv4-address 100.126.0.130 mask-length 28
+set interface bond1.904 state on
+set interface bond1.904 mtu 1500
+set interface bond1.904 ipv4-address 100.126.0.114 mask-length 28
+set interface bond1.908 state on
+set interface bond1.908 mtu 1500
+set interface bond1.908 ipv4-address 100.126.1.146 mask-length 28
+set interface bond1.909 state on
+set interface bond1.909 mtu 1500
+set interface bond1.909 ipv4-address 100.126.1.178 mask-length 28
+set interface bond1.910 state on
+set interface bond1.910 mtu 1500
+set interface bond1.910 ipv4-address 100.126.2.2 mask-length 28
+set interface bond1.911 state on
+set interface bond1.911 mtu 1500
+set interface bond1.911 ipv4-address 100.126.2.34 mask-length 28
+set interface bond1.917 state on
+set interface bond1.917 mtu 1500
+set interface bond1.917 ipv4-address 100.126.4.178 mask-length 28
+set interface bond1.918 state on
+set interface bond1.918 mtu 1500
+set interface bond1.918 ipv4-address 100.126.4.210 mask-length 28
+set interface bond1.920 state on
+set interface bond1.920 mtu 1500
+set interface bond1.920 ipv4-address 100.126.5.66 mask-length 28
+set interface bond1.925 state on
+set interface bond1.925 mtu 1500
+set interface bond1.925 ipv4-address 100.126.1.114 mask-length 28
+set interface bond1.926 state on
+set interface bond1.926 mtu 1500
+set interface bond1.926 ipv4-address 100.126.2.66 mask-length 28
+set interface bond1.928 state on
+set interface bond1.928 mtu 1500
+set interface bond1.928 ipv4-address 100.126.2.82 mask-length 28
+set interface bond1.929 state on
+set interface bond1.929 mtu 1500
+set interface bond1.929 ipv4-address 100.126.2.98 mask-length 28
+set interface bond1.941 state on
+set interface bond1.941 mtu 1500
+set interface bond1.941 ipv4-address 100.126.0.226 mask-length 28
+set interface bond1.962 state on
+set interface bond1.962 mtu 1500
+set interface bond1.962 ipv4-address 100.126.0.242 mask-length 28
+set interface bond1.971 state on
+set interface bond1.971 mtu 1500
+set interface bond1.971 ipv4-address 100.126.4.34 mask-length 28
+set interface bond1.972 state on
+set interface bond1.972 mtu 1500
+set interface bond1.972 ipv4-address 100.126.4.2 mask-length 28
+set interface bond1.973 state on
+set interface bond1.973 mtu 1500
+set interface bond1.973 ipv4-address 100.126.4.50 mask-length 28
+set interface bond1.974 state on
+set interface bond1.974 mtu 1500
+set interface bond1.974 ipv4-address 100.126.4.98 mask-length 28
+set interface bond1.975 state on
+set interface bond1.975 mtu 1500
+set interface bond1.975 ipv4-address 100.126.4.226 mask-length 28
+set interface bond1.979 state on
+set interface bond1.979 mtu 1500
+set interface bond1.979 ipv4-address 100.126.6.146 mask-length 28
+set interface bond1.980 state on
+set interface bond1.980 mtu 1500
+set interface bond1.980 ipv4-address 100.126.6.178 mask-length 28
+set interface bond1.981 state on
+set interface bond1.981 mtu 1500
+set interface bond1.981 ipv4-address 100.126.5.146 mask-length 28
+set interface bond1.982 state on
+set interface bond1.982 mtu 1500
+set interface bond1.982 ipv4-address 100.126.5.162 mask-length 28
+set interface bond1.983 state on
+set interface bond1.983 mtu 1500
+set interface bond1.983 ipv4-address 100.126.5.226 mask-length 28
+set interface bond1.984 state on
+set interface bond1.984 mtu 1500
+set interface bond1.984 ipv4-address 100.126.6.66 mask-length 28
+set interface bond1.985 state on
+set interface bond1.985 mtu 1500
+set interface bond1.985 ipv4-address 100.126.6.130 mask-length 28
+set interface bond1.987 state on
+set interface bond1.987 mtu 1500
+set interface bond1.987 ipv4-address 100.126.7.34 mask-length 28
+set interface bond1.988 state on
+set interface bond1.988 mtu 1500
+set interface bond1.988 ipv4-address 100.126.7.130 mask-length 28
+set interface bond1.1100 state on
+set interface bond1.1100 mtu 1500
+set interface bond1.1100 ipv4-address 100.126.3.210 mask-length 28
+set interface bond1.1101 state on
+set interface bond1.1101 mtu 1500
+set interface bond1.1101 ipv4-address 100.126.2.50 mask-length 28
+set interface bond1.1102 state on
+set interface bond1.1102 mtu 1500
+set interface bond1.1102 ipv4-address 100.126.2.114 mask-length 28
+set interface bond1.1128 state on
+set interface bond1.1128 mtu 1500
+set interface bond1.1128 ipv4-address 100.126.3.226 mask-length 28
+set interface bond1.1134 state on
+set interface bond1.1134 mtu 1500
+set interface bond1.1134 ipv4-address 100.126.1.18 mask-length 28
+set interface bond1.1151 state on
+set interface bond1.1151 mtu 1500
+set interface bond1.1151 ipv4-address 100.126.0.18 mask-length 28
+set interface bond1.1152 state on
+set interface bond1.1152 mtu 1500
+set interface bond1.1152 ipv4-address 100.126.1.34 mask-length 28
+set interface bond1.1153 state on
+set interface bond1.1153 mtu 1500
+set interface bond1.1153 ipv4-address 100.126.4.18 mask-length 28
+set interface bond1.1154 state on
+set interface bond1.1154 mtu 1500
+set interface bond1.1154 ipv4-address 100.126.4.82 mask-length 28
+set interface bond1.1155 state on
+set interface bond1.1155 mtu 1500
+set interface bond1.1155 ipv4-address 100.126.4.66 mask-length 28
+set interface bond1.1156 state on
+set interface bond1.1156 mtu 1500
+set interface bond1.1156 ipv4-address 100.126.4.114 mask-length 28
+set interface bond1.1157 state on
+set interface bond1.1157 mtu 1500
+set interface bond1.1157 ipv4-address 100.126.4.130 mask-length 28
+set interface bond1.1158 state on
+set interface bond1.1158 mtu 1500
+set interface bond1.1158 ipv4-address 100.126.4.146 mask-length 28
+set interface bond1.1159 state on
+set interface bond1.1159 mtu 1500
+set interface bond1.1159 ipv4-address 100.126.4.162 mask-length 28
+set interface bond1.1160 state on
+set interface bond1.1160 mtu 1500
+set interface bond1.1160 ipv4-address 100.126.4.194 mask-length 28
+set interface bond1.1161 state on
+set interface bond1.1161 mtu 1500
+set interface bond1.1161 ipv4-address 100.126.4.242 mask-length 28
+set interface bond1.1162 state on
+set interface bond1.1162 mtu 1500
+set interface bond1.1162 ipv4-address 100.126.5.18 mask-length 28
+set interface bond1.1163 state on
+set interface bond1.1163 mtu 1500
+set interface bond1.1163 ipv4-address 100.126.5.34 mask-length 28
+set interface bond1.1165 state on
+set interface bond1.1165 mtu 1500
+set interface bond1.1165 ipv4-address 100.126.5.2 mask-length 28
+set interface bond1.1166 state on
+set interface bond1.1166 mtu 1500
+set interface bond1.1166 ipv4-address 100.126.5.98 mask-length 28
+set interface bond1.1167 state on
+set interface bond1.1167 mtu 1500
+set interface bond1.1167 ipv4-address 100.126.5.114 mask-length 28
+set interface bond1.1168 state on
+set interface bond1.1168 mtu 1500
+set interface bond1.1168 ipv4-address 100.126.5.130 mask-length 28
+set interface bond1.1169 state on
+set interface bond1.1169 mtu 1500
+set interface bond1.1169 ipv4-address 100.126.5.178 mask-length 28
+set interface bond1.1170 state on
+set interface bond1.1170 mtu 1500
+set interface bond1.1170 ipv4-address 100.126.6.2 mask-length 28
+set interface bond1.1171 state on
+set interface bond1.1171 mtu 1500
+set interface bond1.1171 ipv4-address 100.126.5.194 mask-length 28
+set interface bond1.1172 state on
+set interface bond1.1172 mtu 1500
+set interface bond1.1172 ipv4-address 100.126.7.2 mask-length 28
+set interface bond1.1173 state on
+set interface bond1.1173 mtu 1500
+set interface bond1.1173 ipv4-address 100.126.6.34 mask-length 28
+set interface bond1.1174 state on
+set interface bond1.1174 mtu 1500
+set interface bond1.1174 ipv4-address 100.126.6.50 mask-length 28
+set interface bond1.1175 state on
+set interface bond1.1175 mtu 1500
+set interface bond1.1175 ipv4-address 100.126.6.82 mask-length 28
+set interface bond1.1176 state on
+set interface bond1.1176 mtu 1500
+set interface bond1.1176 ipv4-address 100.126.6.98 mask-length 28
+set interface bond1.1177 state on
+set interface bond1.1177 mtu 1500
+set interface bond1.1177 ipv4-address 100.126.6.114 mask-length 28
+set interface bond1.1178 state on
+set interface bond1.1178 mtu 1500
+set interface bond1.1178 ipv4-address 100.126.6.162 mask-length 28
+set interface bond1.1179 state on
+set interface bond1.1179 mtu 1500
+set interface bond1.1179 ipv4-address 100.126.6.194 mask-length 28
+set interface bond1.1180 state on
+set interface bond1.1180 mtu 1500
+set interface bond1.1180 ipv4-address 100.126.6.210 mask-length 28
+set interface bond1.1181 state on
+set interface bond1.1181 mtu 1500
+set interface bond1.1181 ipv4-address 100.126.6.226 mask-length 28
+set interface bond1.1182 state on
+set interface bond1.1182 mtu 1500
+set interface bond1.1182 ipv4-address 100.126.6.242 mask-length 28
+set interface bond1.1184 state on
+set interface bond1.1184 mtu 1500
+set interface bond1.1184 ipv4-address 100.126.7.50 mask-length 28
+set interface bond1.1185 state on
+set interface bond1.1185 mtu 1500
+set interface bond1.1185 ipv4-address 100.126.7.66 mask-length 28
+set interface bond1.1186 state on
+set interface bond1.1186 mtu 1500
+set interface bond1.1186 ipv4-address 100.126.5.50 mask-length 28
+set interface bond1.1187 state on
+set interface bond1.1187 mtu 1500
+set interface bond1.1187 ipv4-address 100.126.5.82 mask-length 28
+set interface bond1.1188 state on
+set interface bond1.1188 mtu 1500
+set interface bond1.1188 ipv4-address 100.126.7.82 mask-length 28
+set interface bond1.1189 state on
+set interface bond1.1189 mtu 1500
+set interface bond1.1189 ipv4-address 100.126.7.98 mask-length 28
+set interface bond1.1192 state on
+set interface bond1.1192 mtu 1500
+set interface bond1.1192 ipv4-address 100.126.7.114 mask-length 28
+set interface bond1.1193 state on
+set interface bond1.1193 mtu 1500
+set interface bond1.1193 ipv4-address 100.126.7.146 mask-length 28
+set interface bond1.3900 state on
+set interface bond1.3900 mtu 1500
+set interface bond1.3900 ipv4-address 100.126.0.226 mask-length 28
+set interface bond1.3902 state on
+set interface bond1.3902 mtu 1500
+set interface bond1.3902 ipv4-address 100.126.0.210 mask-length 28
+set interface bond1.3904 state on
+set interface bond1.3904 mtu 1500
+set interface bond1.3904 ipv4-address 100.126.0.2 mask-length 28
+set interface bond2 state on
+set interface bond2.700 state on
+set interface bond2.700 mtu 1500
+set interface bond2.700 ipv4-address 100.126.0.34 mask-length 28
+set interface bond2.701 state on
+set interface bond2.701 mtu 1500
+set interface bond2.701 ipv4-address 100.126.0.18 mask-length 28
+set interface bond10 state on
+set interface bond10 mtu 1500
+set interface bond10 ipv4-address 192.168.3.206 mask-length 30
+set interface eth1-03 state on
+set interface eth1-03 mtu 1500
+set interface eth1-03.216 state on
+set interface eth1-03.216 mtu 1500
+set interface eth1-03.216 ipv4-address 100.126.0.18 mask-length 28
+set interface eth1-04 state off
+set interface eth1-04 mtu 1500
+set interface eth2-01 link-speed 1000M/full
+set interface eth2-01 state on
+set interface eth2-01 mtu 1500
+set interface eth2-01 ipv4-address 100.126.1.50 mask-length 28
+set interface eth2-02 state off
+set interface eth2-03 state off
+set interface eth2-05 state off
+set interface eth2-06 state off
+set interface eth2-07 state off
+set interface eth2-07 mtu 1500
+set interface eth4-01 link-speed 10G/full
+set interface eth4-01 state on
+set interface eth4-01 mtu 1500
+set interface eth4-01.220 state on
+set interface eth4-01.220 mtu 1500
+set interface eth4-01.220 ipv4-address 100.126.0.18 mask-length 28
+set interface eth4-01.520 state on
+set interface eth4-01.520 mtu 1500
+set interface eth4-01.520 ipv4-address 100.126.0.34 mask-length 28
+set interface eth4-02 link-speed 10G/full
+set interface eth4-02 state on
+set interface eth4-02 mtu 1500
+set interface eth4-02.221 state on
+set interface eth4-02.221 mtu 1500
+set interface eth4-02.221 ipv4-address 100.126.1.2 mask-length 28
+set interface eth4-02.520 state on
+set interface eth4-02.520 mtu 1500
+set interface eth4-02.520 ipv4-address 100.126.0.194 mask-length 28
+set interface eth4-03 link-speed 10G/full
+set interface eth4-03 state on
+set interface eth4-03 mtu 1500
+set interface eth4-03.217 state on
+set interface eth4-03.217 mtu 1500
+set interface eth4-03.217 ipv4-address 100.126.0.2 mask-length 28
+set interface eth4-03.520 state on
+set interface eth4-03.520 mtu 1500
+set interface eth4-03.520 ipv4-address 100.126.0.66 mask-length 28
+set interface eth4-04 link-speed 10G/full
+set interface eth4-04 state on
+set interface eth4-04 mtu 1500
+set interface eth4-04.218 state on
+set interface eth4-04.218 mtu 1500
+set interface eth4-04.218 ipv4-address 100.126.1.2 mask-length 28
+set interface eth4-04.520 state on
+set interface eth4-04.520 mtu 1500
+set interface eth4-04.520 ipv4-address 100.126.0.34 mask-length 28
+set interface lo state on
+set interface lo ipv4-address 127.0.0.1 mask-length 8
+set interface vpnt1 state on
+set interface vpnt1 mtu 1500
+set interface vpnt2 state on
+set interface vpnt2 mtu 1500
+set interface vpnt11 state on
+set interface vpnt11 mtu 1399
+set interface vpnt12 state on
+set interface vpnt12 mtu 1399
+set interface vpnt21 state on
+set interface vpnt21 mtu 1500
+set interface vpnt22 state on
+set interface vpnt22 mtu 1500
+set interface vpnt23 state on
+set interface vpnt23 mtu 1500
+set interface vpnt24 state on
+set interface vpnt24 mtu 1500
+set interface vpnt31 state on
+set interface vpnt31 mtu 1500
+set interface vpnt32 state on
+set interface vpnt32 mtu 1500
+set interface vpnt33 state on
+set interface vpnt33 mtu 1500
+set interface vpnt34 state on
+set interface vpnt34 mtu 1500
+set interface vpnt41 state on
+set interface vpnt41 mtu 1500
+set interface vpnt42 state on
+set interface vpnt42 mtu 1500
+add bonding group 1 interface eth1-01
+add bonding group 1 interface eth3-01
+add bonding group 2 interface eth1-02
+add bonding group 2 interface eth3-02
+add bonding group 10 interface eth2-04
+add bonding group 10 interface eth2-08
+set aaa tacacs-servers state off
+set aaa radius-servers super-user-uid 96
+set aaa radius-servers require-message-authenticator no
+set bootp interface bond1.3 on
+set bootp interface bond1.3 relay-to 192.168.25.20 on
+set bootp interface bond1.3 relay-to 192.168.25.21 on
+set bootp interface bond1.3 primary 10.15.0.1
+set bootp interface bond1.212 on
+set bootp interface bond1.212 relay-to 192.168.25.20 on
+set bootp interface bond1.212 relay-to 192.168.25.21 on
+set bootp interface bond1.212 primary 10.154.0.1
+set bootp interface bond1.212 maxhopcount 16
+set bootp interface bond1.800 on
+set bootp interface bond1.800 relay-to 192.168.25.20 on
+set bootp interface bond1.800 relay-to 192.168.25.21 on
+set bootp interface bond1.800 primary 10.155.0.1
+set bootp interface bond1.800 maxhopcount 16
+set bootp interface bond1.803 on
+set bootp interface bond1.803 relay-to 192.168.25.20 on
+set bootp interface bond1.803 relay-to 192.168.25.21 on
+set bootp interface bond1.803 primary 10.155.80.1
+set bootp interface bond1.805 on
+set bootp interface bond1.805 relay-to 192.168.25.20 on
+set bootp interface bond1.805 relay-to 192.168.25.21 on
+set bootp interface bond1.805 primary 10.155.0.33
+set bootp interface bond1.805 maxhopcount 16
+set bootp interface bond1.806 on
+set bootp interface bond1.806 relay-to 192.168.25.20 on
+set bootp interface bond1.806 relay-to 192.168.25.21 on
+set bootp interface bond1.806 primary 10.155.0.57
+set bootp interface bond1.806 maxhopcount 16
+set bootp interface bond1.807 on
+set bootp interface bond1.807 relay-to 192.168.25.20 on
+set bootp interface bond1.807 relay-to 192.168.25.21 on
+set bootp interface bond1.807 primary 10.155.10.17
+set bootp interface bond1.807 maxhopcount 16
+set bootp interface bond1.809 on
+set bootp interface bond1.809 relay-to 192.168.25.20 on
+set bootp interface bond1.809 relay-to 192.168.25.21 on
+set bootp interface bond1.809 primary 10.155.6.33
+set bootp interface bond1.809 maxhopcount 16
+set bootp interface bond1.810 on
+set bootp interface bond1.810 relay-to 192.168.25.20 on
+set bootp interface bond1.810 relay-to 192.168.25.21 on
+set bootp interface bond1.810 primary 10.155.1.161
+set bootp interface bond1.810 maxhopcount 16
+set bootp interface bond1.811 on
+set bootp interface bond1.811 relay-to 192.168.25.20 on
+set bootp interface bond1.811 relay-to 192.168.25.21 on
+set bootp interface bond1.811 primary 10.155.0.97
+set bootp interface bond1.811 maxhopcount 16
+set bootp interface bond1.812 on
+set bootp interface bond1.812 relay-to 192.168.25.20 on
+set bootp interface bond1.812 relay-to 192.168.25.21 on
+set bootp interface bond1.812 primary 10.155.0.105
+set bootp interface bond1.812 maxhopcount 16
+set bootp interface bond1.815 on
+set bootp interface bond1.815 relay-to 192.168.25.20 on
+set bootp interface bond1.815 relay-to 192.168.25.21 on
+set bootp interface bond1.815 primary 10.155.10.49
+set bootp interface bond1.815 maxhopcount 16
+set bootp interface bond1.816 on
+set bootp interface bond1.816 relay-to 192.168.25.20 on
+set bootp interface bond1.816 relay-to 192.168.25.21 on
+set bootp interface bond1.816 primary 10.155.0.121
+set bootp interface bond1.816 maxhopcount 16
+set bootp interface bond1.817 on
+set bootp interface bond1.817 relay-to 192.168.25.20 on
+set bootp interface bond1.817 relay-to 192.168.25.21 on
+set bootp interface bond1.817 primary 10.155.0.129
+set bootp interface bond1.817 maxhopcount 16
+set bootp interface bond1.819 on
+set bootp interface bond1.819 relay-to 192.168.25.20 on
+set bootp interface bond1.819 relay-to 192.168.25.21 on
+set bootp interface bond1.819 primary 10.155.0.137
+set bootp interface bond1.819 maxhopcount 16
+set bootp interface bond1.820 on
+set bootp interface bond1.820 relay-to 192.168.25.20 on
+set bootp interface bond1.820 relay-to 192.168.25.21 on
+set bootp interface bond1.820 primary 10.155.0.145
+set bootp interface bond1.820 maxhopcount 16
+set bootp interface bond1.821 on
+set bootp interface bond1.821 relay-to 192.168.25.20 on
+set bootp interface bond1.821 relay-to 192.168.25.21 on
+set bootp interface bond1.821 primary 10.155.0.153
+set bootp interface bond1.821 maxhopcount 16
+set bootp interface bond1.822 on
+set bootp interface bond1.822 relay-to 192.168.25.20 on
+set bootp interface bond1.822 relay-to 192.168.25.21 on
+set bootp interface bond1.822 primary 10.155.0.161
+set bootp interface bond1.822 maxhopcount 16
+set bootp interface bond1.823 on
+set bootp interface bond1.823 relay-to 192.168.25.20 on
+set bootp interface bond1.823 relay-to 192.168.25.21 on
+set bootp interface bond1.823 primary 10.155.0.169
+set bootp interface bond1.823 maxhopcount 16
+set bootp interface bond1.824 on
+set bootp interface bond1.824 relay-to 192.168.25.20 on
+set bootp interface bond1.824 relay-to 192.168.25.21 on
+set bootp interface bond1.824 primary 10.155.0.177
+set bootp interface bond1.824 maxhopcount 16
+set bootp interface bond1.825 on
+set bootp interface bond1.825 relay-to 192.168.25.20 on
+set bootp interface bond1.825 relay-to 192.168.25.21 on
+set bootp interface bond1.825 primary 10.155.0.185
+set bootp interface bond1.825 maxhopcount 16
+set bootp interface bond1.826 on
+set bootp interface bond1.826 relay-to 192.168.25.20 on
+set bootp interface bond1.826 relay-to 192.168.25.21 on
+set bootp interface bond1.826 primary 10.155.0.193
+set bootp interface bond1.826 maxhopcount 16
+set bootp interface bond1.828 on
+set bootp interface bond1.828 relay-to 192.168.25.20 on
+set bootp interface bond1.828 relay-to 192.168.25.21 on
+set bootp interface bond1.828 primary 10.155.0.201
+set bootp interface bond1.828 maxhopcount 16
+set bootp interface bond1.829 on
+set bootp interface bond1.829 relay-to 192.168.25.20 on
+set bootp interface bond1.829 relay-to 192.168.25.21 on
+set bootp interface bond1.829 primary 10.155.0.209
+set bootp interface bond1.829 maxhopcount 16
+set bootp interface bond1.830 on
+set bootp interface bond1.830 relay-to 192.168.25.20 on
+set bootp interface bond1.830 relay-to 192.168.25.21 on
+set bootp interface bond1.830 primary 10.155.10.65
+set bootp interface bond1.830 maxhopcount 16
+set bootp interface bond1.831 on
+set bootp interface bond1.831 relay-to 192.168.25.20 on
+set bootp interface bond1.831 relay-to 192.168.25.21 on
+set bootp interface bond1.831 primary 10.155.0.217
+set bootp interface bond1.831 maxhopcount 16
+set bootp interface bond1.832 on
+set bootp interface bond1.832 relay-to 192.168.25.20 on
+set bootp interface bond1.832 relay-to 192.168.25.21 on
+set bootp interface bond1.832 primary 10.155.0.225
+set bootp interface bond1.832 maxhopcount 16
+set bootp interface bond1.835 on
+set bootp interface bond1.835 relay-to 192.168.25.20 on
+set bootp interface bond1.835 relay-to 192.168.25.21 on
+set bootp interface bond1.835 primary 10.155.0.241
+set bootp interface bond1.835 maxhopcount 16
+set bootp interface bond1.838 on
+set bootp interface bond1.838 relay-to 192.168.25.20 on
+set bootp interface bond1.838 relay-to 192.168.25.21 on
+set bootp interface bond1.838 primary 10.155.0.249
+set bootp interface bond1.838 maxhopcount 16
+set bootp interface bond1.839 on
+set bootp interface bond1.839 relay-to 192.168.25.20 on
+set bootp interface bond1.839 relay-to 192.168.25.21 on
+set bootp interface bond1.839 primary 10.155.1.1
+set bootp interface bond1.839 maxhopcount 16
+set bootp interface bond1.840 on
+set bootp interface bond1.840 relay-to 192.168.25.20 on
+set bootp interface bond1.840 relay-to 192.168.25.21 on
+set bootp interface bond1.840 primary 10.155.1.9
+set bootp interface bond1.840 maxhopcount 16
+set bootp interface bond1.841 on
+set bootp interface bond1.841 relay-to 192.168.25.20 on
+set bootp interface bond1.841 relay-to 192.168.25.21 on
+set bootp interface bond1.841 primary 10.155.1.17
+set bootp interface bond1.841 maxhopcount 16
+set bootp interface bond1.843 on
+set bootp interface bond1.843 relay-to 192.168.25.20 on
+set bootp interface bond1.843 relay-to 192.168.25.21 on
+set bootp interface bond1.843 primary 10.155.1.25
+set bootp interface bond1.843 maxhopcount 16
+set bootp interface bond1.844 on
+set bootp interface bond1.844 relay-to 192.168.25.20 on
+set bootp interface bond1.844 relay-to 192.168.25.21 on
+set bootp interface bond1.844 primary 10.155.1.33
+set bootp interface bond1.844 maxhopcount 16
+set bootp interface bond1.845 on
+set bootp interface bond1.845 relay-to 192.168.25.20 on
+set bootp interface bond1.845 relay-to 192.168.25.21 on
+set bootp interface bond1.845 primary 10.155.0.65
+set bootp interface bond1.845 maxhopcount 16
+set bootp interface bond1.846 on
+set bootp interface bond1.846 relay-to 192.168.25.20 on
+set bootp interface bond1.846 relay-to 192.168.25.21 on
+set bootp interface bond1.846 primary 10.155.0.73
+set bootp interface bond1.846 maxhopcount 16
+set bootp interface bond1.847 on
+set bootp interface bond1.847 relay-to 192.168.25.20 on
+set bootp interface bond1.847 relay-to 192.168.25.21 on
+set bootp interface bond1.847 primary 10.155.10.33
+set bootp interface bond1.847 maxhopcount 16
+set bootp interface bond1.851 on
+set bootp interface bond1.851 relay-to 192.168.25.20 on
+set bootp interface bond1.851 relay-to 192.168.25.21 on
+set bootp interface bond1.851 primary 10.155.3.41
+set bootp interface bond1.851 maxhopcount 16
+set bootp interface bond1.854 on
+set bootp interface bond1.854 relay-to 192.168.25.20 on
+set bootp interface bond1.854 relay-to 192.168.25.21 on
+set bootp interface bond1.854 primary 10.155.3.65
+set bootp interface bond1.854 maxhopcount 16
+set bootp interface bond1.856 on
+set bootp interface bond1.856 relay-to 192.168.25.20 on
+set bootp interface bond1.856 relay-to 192.168.25.21 on
+set bootp interface bond1.856 primary 10.155.3.81
+set bootp interface bond1.856 maxhopcount 16
+set bootp interface bond1.857 on
+set bootp interface bond1.857 relay-to 192.168.25.20 on
+set bootp interface bond1.857 relay-to 192.168.25.21 on
+set bootp interface bond1.857 primary 10.155.3.89
+set bootp interface bond1.857 maxhopcount 16
+set bootp interface bond1.858 on
+set bootp interface bond1.858 relay-to 192.168.25.20 on
+set bootp interface bond1.858 relay-to 192.168.25.21 on
+set bootp interface bond1.858 primary 10.155.3.97
+set bootp interface bond1.858 maxhopcount 16
+set bootp interface bond1.859 on
+set bootp interface bond1.859 relay-to 192.168.25.20 on
+set bootp interface bond1.859 relay-to 192.168.25.21 on
+set bootp interface bond1.859 primary 10.155.3.105
+set bootp interface bond1.859 maxhopcount 16
+set bootp interface bond1.862 on
+set bootp interface bond1.862 relay-to 192.168.25.20 on
+set bootp interface bond1.862 relay-to 192.168.25.21 on
+set bootp interface bond1.862 primary 10.155.3.129
+set bootp interface bond1.862 maxhopcount 16
+set bootp interface bond1.864 on
+set bootp interface bond1.864 relay-to 192.168.25.20 on
+set bootp interface bond1.864 relay-to 192.168.25.21 on
+set bootp interface bond1.864 primary 10.155.3.145
+set bootp interface bond1.864 maxhopcount 16
+set bootp interface bond1.881 on
+set bootp interface bond1.881 relay-to 192.168.25.20 on
+set bootp interface bond1.881 relay-to 192.168.25.21 on
+set bootp interface bond1.881 primary 10.155.4.25
+set bootp interface bond1.881 maxhopcount 16
+set bootp interface bond1.889 on
+set bootp interface bond1.889 relay-to 192.168.25.20 on
+set bootp interface bond1.889 relay-to 192.168.25.21 on
+set bootp interface bond1.889 primary 10.155.4.89
+set bootp interface bond1.900 on
+set bootp interface bond1.900 relay-to 192.168.25.20 on
+set bootp interface bond1.900 relay-to 192.168.25.21 on
+set bootp interface bond1.900 primary 10.155.0.9
+set bootp interface bond1.900 maxhopcount 16
+set bootp interface bond1.901 on
+set bootp interface bond1.901 relay-to 192.168.25.20 on
+set bootp interface bond1.901 relay-to 192.168.25.21 on
+set bootp interface bond1.901 primary 10.155.0.41
+set bootp interface bond1.901 maxhopcount 16
+set bootp interface bond1.902 on
+set bootp interface bond1.902 relay-to 192.168.25.20 on
+set bootp interface bond1.902 relay-to 192.168.25.21 on
+set bootp interface bond1.902 primary 10.155.0.49
+set bootp interface bond1.902 maxhopcount 16
+set bootp interface bond1.903 on
+set bootp interface bond1.903 relay-to 192.168.25.20 on
+set bootp interface bond1.903 relay-to 192.168.25.21 on
+set bootp interface bond1.903 primary 10.155.0.81
+set bootp interface bond1.903 maxhopcount 16
+set bootp interface bond1.904 on
+set bootp interface bond1.904 relay-to 192.168.25.20 on
+set bootp interface bond1.904 relay-to 192.168.25.21 on
+set bootp interface bond1.904 primary 10.155.0.89
+set bootp interface bond1.904 maxhopcount 16
+set bootp interface bond1.908 on
+set bootp interface bond1.908 relay-to 192.168.25.20 on
+set bootp interface bond1.908 relay-to 192.168.25.21 on
+set bootp interface bond1.908 primary 10.155.1.65
+set bootp interface bond1.908 maxhopcount 16
+set bootp interface bond1.909 on
+set bootp interface bond1.909 relay-to 192.168.25.20 on
+set bootp interface bond1.909 relay-to 192.168.25.21 on
+set bootp interface bond1.909 primary 10.155.1.73
+set bootp interface bond1.909 maxhopcount 16
+set bootp interface bond1.910 on
+set bootp interface bond1.910 relay-to 192.168.25.20 on
+set bootp interface bond1.910 relay-to 192.168.25.21 on
+set bootp interface bond1.910 primary 10.155.1.81
+set bootp interface bond1.910 maxhopcount 16
+set bootp interface bond1.911 on
+set bootp interface bond1.911 relay-to 192.168.25.20 on
+set bootp interface bond1.911 relay-to 192.168.25.21 on
+set bootp interface bond1.911 primary 10.155.1.89
+set bootp interface bond1.911 maxhopcount 16
+set bootp interface bond1.925 on
+set bootp interface bond1.925 relay-to 192.168.25.20 on
+set bootp interface bond1.925 relay-to 192.168.25.21 on
+set bootp interface bond1.925 primary 10.155.1.185
+set bootp interface bond1.925 maxhopcount 16
+set bootp interface bond1.926 on
+set bootp interface bond1.926 relay-to 192.168.25.20 on
+set bootp interface bond1.926 relay-to 192.168.25.21 on
+set bootp interface bond1.926 primary 10.155.1.193
+set bootp interface bond1.926 maxhopcount 16
+set bootp interface bond1.928 on
+set bootp interface bond1.928 relay-to 192.168.25.20 on
+set bootp interface bond1.928 relay-to 192.168.25.21 on
+set bootp interface bond1.928 primary 10.155.1.209
+set bootp interface bond1.928 maxhopcount 16
+set bootp interface bond1.929 on
+set bootp interface bond1.929 relay-to 192.168.25.20 on
+set bootp interface bond1.929 relay-to 192.168.25.21 on
+set bootp interface bond1.929 primary 10.155.1.217
+set bootp interface bond1.929 maxhopcount 16
+set bootp interface bond1.1100 on
+set bootp interface bond1.1100 relay-to 192.168.25.20 on
+set bootp interface bond1.1100 relay-to 192.168.25.21 on
+set bootp interface bond1.1100 primary 10.155.4.177
+set bootp interface bond1.1101 on
+set bootp interface bond1.1101 relay-to 192.168.25.20 on
+set bootp interface bond1.1101 relay-to 192.168.25.21 on
+set bootp interface bond1.1101 primary 10.155.4.185
+set bootp interface bond1.1101 maxhopcount 16
+set bootp interface bond1.1102 on
+set bootp interface bond1.1102 relay-to 192.168.25.20 on
+set bootp interface bond1.1102 relay-to 192.168.25.21 on
+set bootp interface bond1.1102 primary 10.155.4.193
+set bootp interface bond1.1102 maxhopcount 16
+set bootp interface bond1.1128 on
+set bootp interface bond1.1128 relay-to 192.168.25.20 on
+set bootp interface bond1.1128 relay-to 192.168.25.21 on
+set bootp interface bond1.1128 primary 10.155.5.145
+set bootp interface bond1.1151 on
+set bootp interface bond1.1151 relay-to 192.168.25.20 on
+set bootp interface bond1.1151 relay-to 192.168.25.21 on
+set bootp interface bond1.1151 primary 10.155.6.25
+set bootp interface bond1.1151 maxhopcount 16
+set bootp interface bond1.1296 on
+set bootp interface bond1.1296 relay-to 192.168.25.20 on
+set bootp interface bond1.1296 relay-to 192.168.25.21 on
+set bootp interface bond1.1296 primary 10.155.9.225
+set bootp interface bond1.1296 maxhopcount 16
+set bootp interface bond1.1297 on
+set bootp interface bond1.1297 relay-to 192.168.25.20 on
+set bootp interface bond1.1297 relay-to 192.168.25.21 on
+set bootp interface bond1.1297 primary 10.155.9.233
+set bootp interface bond1.1297 maxhopcount 16
+set bootp interface bond1.1298 on
+set bootp interface bond1.1298 relay-to 192.168.25.20 on
+set bootp interface bond1.1298 relay-to 192.168.25.21 on
+set bootp interface bond1.1298 primary 10.155.9.241
+set bootp interface bond1.1298 maxhopcount 16
+set bootp interface bond1.1299 on
+set bootp interface bond1.1299 relay-to 192.168.25.20 on
+set bootp interface bond1.1299 relay-to 192.168.25.21 on
+set bootp interface bond1.1299 primary 10.155.9.249
+set bootp interface bond1.1299 maxhopcount 16
+set lldp state off
+set management interface Mgmt
+set ospf instance default area backbone on
+set inbound-route-filter ospf2 instance default accept-all-ipv4
+set inbound-route-filter rip accept-all-ipv4
+set rip update-interval default
+set rip expire-interval default
+set snmp mode vs
+set snmp vs-direct-access on
+set snmp agent on
+set snmp agent-version v3-Only
+add snmp usm user l8snmp security-level authPriv auth-pass-phrase-hashed 3001645a39c9834008a3fd626eb9493fb96bf087ae70719dd3a4169755213f56 privacy-pass-phrase-hashed 3001645a39c9834008a3fd626eb9493fb96bf087ae70719dd3a4169755213f56 privacy-protocol AES authentication-protocol SHA256
+set snmp usm user l8snmp vsid  0,3-4,6-13
+add snmp usm user snmpuser security-level authPriv auth-pass-phrase-hashed b2e609745e1df196970e9dfbf63f80ea50d720f7f4eeb46be7eb20387dbe94cf privacy-pass-phrase-hashed b2e609745e1df196970e9dfbf63f80ea50d720f7f4eeb46be7eb20387dbe94cf privacy-protocol AES authentication-protocol SHA256
+set snmp usm user snmpuser vsid  0,3-4,6-13
+set snmp traps trap authorizationError disable
+set snmp traps trap biosFailure disable
+set snmp traps trap clusterXLFailover disable
+set snmp traps trap coldStart disable
+set snmp traps trap configurationChange disable
+set snmp traps trap configurationSave disable
+set snmp traps trap fanFailure disable
+set snmp traps trap highVoltage disable
+set snmp traps trap linkUpLinkDown disable
+set snmp traps trap lowDiskSpace disable
+set snmp traps trap lowDiskSpaceAllPartitions disable
+set snmp traps trap lowVoltage disable
+set snmp traps trap overTemperature disable
+set snmp traps trap powerSupplyFailure disable
+set snmp traps trap raidVolumeState disable
+set snmp traps trap vrrpv2AuthFailure disable
+set snmp traps trap vrrpv2NewMaster disable
+set snmp traps trap vrrpv3NewMaster disable
+set snmp traps trap vrrpv3ProtoError disable
+set snmp traps advanced coldStart reboot-only off
+set static-route default nexthop gateway address 10.154.0.6 on
+set static-route 10.15.0.0/21 nexthop gateway logical bond1.3 on
+set static-route 10.15.0.0/21 scopelocal on
+set static-route 10.154.0.0/29 nexthop gateway logical bond1.212 on
+set static-route 10.154.0.0/29 scopelocal on
+set static-route 10.155.0.0/29 nexthop gateway logical bond1.800 on
+set static-route 10.155.0.0/29 scopelocal on
+set static-route 10.155.0.8/29 nexthop gateway logical bond1.900 on
+set static-route 10.155.0.8/29 scopelocal on
+set static-route 10.155.0.32/29 nexthop gateway logical bond1.805 on
+set static-route 10.155.0.32/29 scopelocal on
+set static-route 10.155.0.40/29 nexthop gateway logical bond1.901 on
+set static-route 10.155.0.40/29 scopelocal on
+set static-route 10.155.0.48/29 nexthop gateway logical bond1.902 on
+set static-route 10.155.0.48/29 scopelocal on
+set static-route 10.155.0.56/29 nexthop gateway logical bond1.806 on
+set static-route 10.155.0.56/29 scopelocal on
+set static-route 10.155.0.64/29 nexthop gateway logical bond1.845 on
+set static-route 10.155.0.64/29 scopelocal on
+set static-route 10.155.0.72/29 nexthop gateway logical bond1.846 on
+set static-route 10.155.0.72/29 scopelocal on
+set static-route 10.155.0.80/29 nexthop gateway logical bond1.903 on
+set static-route 10.155.0.80/29 scopelocal on
+set static-route 10.155.0.88/29 nexthop gateway logical bond1.904 on
+set static-route 10.155.0.88/29 scopelocal on
+set static-route 10.155.0.96/29 nexthop gateway logical bond1.811 on
+set static-route 10.155.0.96/29 scopelocal on
+set static-route 10.155.0.104/29 nexthop gateway logical bond1.812 on
+set static-route 10.155.0.104/29 scopelocal on
+set static-route 10.155.0.120/29 nexthop gateway logical bond1.816 on
+set static-route 10.155.0.120/29 scopelocal on
+set static-route 10.155.0.128/29 nexthop gateway logical bond1.817 on
+set static-route 10.155.0.128/29 scopelocal on
+set static-route 10.155.0.136/29 nexthop gateway logical bond1.819 on
+set static-route 10.155.0.136/29 scopelocal on
+set static-route 10.155.0.144/29 nexthop gateway logical bond1.820 on
+set static-route 10.155.0.144/29 scopelocal on
+set static-route 10.155.0.152/29 nexthop gateway logical bond1.821 on
+set static-route 10.155.0.152/29 scopelocal on
+set static-route 10.155.0.160/29 nexthop gateway logical bond1.822 on
+set static-route 10.155.0.160/29 scopelocal on
+set static-route 10.155.0.168/29 nexthop gateway logical bond1.823 on
+set static-route 10.155.0.168/29 scopelocal on
+set static-route 10.155.0.176/29 nexthop gateway logical bond1.824 on
+set static-route 10.155.0.176/29 scopelocal on
+set static-route 10.155.0.184/29 nexthop gateway logical bond1.825 on
+set static-route 10.155.0.184/29 scopelocal on
+set static-route 10.155.0.192/29 nexthop gateway logical bond1.826 on
+set static-route 10.155.0.192/29 scopelocal on
+set static-route 10.155.0.200/29 nexthop gateway logical bond1.828 on
+set static-route 10.155.0.200/29 scopelocal on
+set static-route 10.155.0.208/29 nexthop gateway logical bond1.829 on
+set static-route 10.155.0.208/29 scopelocal on
+set static-route 10.155.0.216/29 nexthop gateway logical bond1.831 on
+set static-route 10.155.0.216/29 scopelocal on
+set static-route 10.155.0.224/29 nexthop gateway logical bond1.832 on
+set static-route 10.155.0.224/29 scopelocal on
+set static-route 10.155.0.240/29 nexthop gateway logical bond1.835 on
+set static-route 10.155.0.240/29 scopelocal on
+set static-route 10.155.0.248/29 nexthop gateway logical bond1.838 on
+set static-route 10.155.0.248/29 scopelocal on
+set static-route 10.155.1.0/29 nexthop gateway logical bond1.839 on
+set static-route 10.155.1.0/29 scopelocal on
+set static-route 10.155.1.8/29 nexthop gateway logical bond1.840 on
+set static-route 10.155.1.8/29 scopelocal on
+set static-route 10.155.1.16/29 nexthop gateway logical bond1.841 on
+set static-route 10.155.1.16/29 scopelocal on
+set static-route 10.155.1.32/29 nexthop gateway logical bond1.844 on
+set static-route 10.155.1.32/29 scopelocal on
+set static-route 10.155.1.64/29 nexthop gateway logical bond1.908 on
+set static-route 10.155.1.64/29 scopelocal on
+set static-route 10.155.1.72/29 nexthop gateway logical bond1.909 on
+set static-route 10.155.1.72/29 scopelocal on
+set static-route 10.155.1.80/29 nexthop gateway logical bond1.910 on
+set static-route 10.155.1.80/29 scopelocal on
+set static-route 10.155.1.88/29 nexthop gateway logical bond1.911 on
+set static-route 10.155.1.88/29 scopelocal on
+set static-route 10.155.1.160/29 nexthop gateway logical bond1.810 on
+set static-route 10.155.1.160/29 scopelocal on
+set static-route 10.155.1.184/29 nexthop gateway logical bond1.925 on
+set static-route 10.155.1.184/29 scopelocal on
+set static-route 10.155.1.192/29 nexthop gateway logical bond1.926 on
+set static-route 10.155.1.192/29 scopelocal on
+set static-route 10.155.1.208/29 nexthop gateway logical bond1.928 on
+set static-route 10.155.1.208/29 scopelocal on
+set static-route 10.155.1.216/29 nexthop gateway logical bond1.929 on
+set static-route 10.155.1.216/29 scopelocal on
+set static-route 10.155.2.24/29 nexthop gateway logical bond1.941 on
+set static-route 10.155.2.24/29 scopelocal on
+set static-route 10.155.2.224/29 nexthop gateway logical bond1.962 on
+set static-route 10.155.2.224/29 scopelocal on
+set static-route 10.155.3.40/29 nexthop gateway logical bond1.851 on
+set static-route 10.155.3.40/29 scopelocal on
+set static-route 10.155.3.64/29 nexthop gateway logical bond1.854 on
+set static-route 10.155.3.64/29 scopelocal on
+set static-route 10.155.3.80/29 nexthop gateway logical bond1.856 on
+set static-route 10.155.3.80/29 scopelocal on
+set static-route 10.155.3.88/29 nexthop gateway logical bond1.857 on
+set static-route 10.155.3.88/29 scopelocal on
+set static-route 10.155.3.96/29 nexthop gateway logical bond1.858 on
+set static-route 10.155.3.96/29 scopelocal on
+set static-route 10.155.3.104/29 nexthop gateway logical bond1.859 on
+set static-route 10.155.3.104/29 scopelocal on
+set static-route 10.155.3.216/29 nexthop gateway logical bond1.873 on
+set static-route 10.155.3.216/29 scopelocal on
+set static-route 10.155.3.232/29 nexthop gateway logical bond1.875 on
+set static-route 10.155.3.232/29 scopelocal on
+set static-route 10.155.4.24/29 nexthop gateway logical bond1.881 on
+set static-route 10.155.4.24/29 scopelocal on
+set static-route 10.155.4.88/29 nexthop gateway logical bond1.889 on
+set static-route 10.155.4.88/29 scopelocal on
+set static-route 10.155.4.176/29 nexthop gateway logical bond1.1100 on
+set static-route 10.155.4.176/29 scopelocal on
+set static-route 10.155.4.184/29 nexthop gateway logical bond1.1101 on
+set static-route 10.155.4.184/29 scopelocal on
+set static-route 10.155.4.192/29 nexthop gateway logical bond1.1102 on
+set static-route 10.155.4.192/29 scopelocal on
+set static-route 10.155.5.144/29 nexthop gateway logical bond1.1128 on
+set static-route 10.155.5.144/29 scopelocal on
+set static-route 10.155.6.24/29 nexthop gateway logical bond1.1151 on
+set static-route 10.155.6.24/29 scopelocal on
+set static-route 10.155.6.32/29 nexthop gateway logical bond1.1152 on
+set static-route 10.155.6.32/29 scopelocal on
+set static-route 10.155.6.40/29 nexthop gateway logical bond1.1153 on
+set static-route 10.155.6.40/29 scopelocal on
+set static-route 10.155.6.48/29 nexthop gateway logical bond1.971 on
+set static-route 10.155.6.48/29 scopelocal on
+set static-route 10.155.6.56/29 nexthop gateway logical bond1.972 on
+set static-route 10.155.6.56/29 scopelocal on
+set static-route 10.155.6.64/29 nexthop gateway logical bond1.973 on
+set static-route 10.155.6.64/29 scopelocal on
+set static-route 10.155.6.72/29 nexthop gateway logical bond1.917 on
+set static-route 10.155.6.72/29 scopelocal on
+set static-route 10.155.6.80/29 nexthop gateway logical bond1.1154 on
+set static-route 10.155.6.80/29 scopelocal on
+set static-route 10.155.6.88/29 nexthop gateway logical bond1.1155 on
+set static-route 10.155.6.88/29 scopelocal on
+set static-route 10.155.6.96/29 nexthop gateway logical bond1.1156 on
+set static-route 10.155.6.96/29 scopelocal on
+set static-route 10.155.6.104/29 nexthop gateway logical bond1.1157 on
+set static-route 10.155.6.104/29 scopelocal on
+set static-route 10.155.6.112/29 nexthop gateway logical bond1.1159 on
+set static-route 10.155.6.112/29 scopelocal on
+set static-route 10.155.6.120/29 nexthop gateway logical bond1.918 on
+set static-route 10.155.6.120/29 scopelocal on
+set static-route 10.155.6.128/29 nexthop gateway logical bond1.1160 on
+set static-route 10.155.6.128/29 scopelocal on
+set static-route 10.155.6.136/29 nexthop gateway logical bond1.975 on
+set static-route 10.155.6.136/29 scopelocal on
+set static-route 10.155.6.144/29 nexthop gateway logical bond1.1134 on
+set static-route 10.155.6.144/29 scopelocal on
+set static-route 10.155.6.160/29 nexthop gateway logical bond1.1163 on
+set static-route 10.155.6.160/29 scopelocal on
+set static-route 10.155.6.184/29 nexthop gateway logical bond1.1165 on
+set static-route 10.155.6.184/29 scopelocal on
+set static-route 10.155.6.192/29 nexthop gateway logical bond1.1166 on
+set static-route 10.155.6.192/29 scopelocal on
+set static-route 10.155.6.200/29 nexthop gateway logical bond1.1167 on
+set static-route 10.155.6.200/29 scopelocal on
+set static-route 10.155.6.208/29 nexthop gateway logical bond1.1168 on
+set static-route 10.155.6.208/29 scopelocal on
+set static-route 10.155.6.216/29 nexthop gateway logical bond1.1170 on
+set static-route 10.155.6.216/29 scopelocal on
+set static-route 10.155.6.224/29 nexthop gateway logical bond1.1171 on
+set static-route 10.155.6.224/29 scopelocal on
+set static-route 10.155.6.232/29 nexthop gateway logical bond1.983 on
+set static-route 10.155.6.232/29 scopelocal on
+set static-route 10.155.6.240/29 nexthop gateway logical bond1.1173 on
+set static-route 10.155.6.240/29 scopelocal on
+set static-route 10.155.6.248/29 nexthop gateway logical bond1.1174 on
+set static-route 10.155.6.248/29 scopelocal on
+set static-route 10.155.7.0/29 nexthop gateway logical bond1.984 on
+set static-route 10.155.7.0/29 scopelocal on
+set static-route 10.155.7.8/29 nexthop gateway logical bond1.1176 on
+set static-route 10.155.7.8/29 scopelocal on
+set static-route 10.155.7.16/29 nexthop gateway logical bond1.985 on
+set static-route 10.155.7.16/29 scopelocal on
+set static-route 10.155.7.24/29 nexthop gateway logical bond1.1177 on
+set static-route 10.155.7.24/29 scopelocal on
+set static-route 10.155.7.32/29 nexthop gateway logical bond1.979 on
+set static-route 10.155.7.32/29 scopelocal on
+set static-route 10.155.7.40/29 nexthop gateway logical bond1.1178 on
+set static-route 10.155.7.40/29 scopelocal on
+set static-route 10.155.7.48/29 nexthop gateway logical bond1.980 on
+set static-route 10.155.7.48/29 scopelocal on
+set static-route 10.155.7.56/29 nexthop gateway logical bond1.1179 on
+set static-route 10.155.7.56/29 scopelocal on
+set static-route 10.155.7.64/29 nexthop gateway logical bond1.1181 on
+set static-route 10.155.7.64/29 scopelocal on
+set static-route 10.155.7.72/29 nexthop gateway logical bond1.1182 on
+set static-route 10.155.7.72/29 scopelocal on
+set static-route 10.155.7.80/29 nexthop gateway logical bond1.809 on
+set static-route 10.155.7.80/29 scopelocal on
+set static-route 10.155.7.88/29 nexthop gateway logical bond1.1172 on
+set static-route 10.155.7.88/29 scopelocal on
+set static-route 10.155.7.104/29 nexthop gateway logical bond1.1184 on
+set static-route 10.155.7.104/29 scopelocal on
+set static-route 10.155.7.112/29 nexthop gateway logical bond1.920 on
+set static-route 10.155.7.112/29 scopelocal on
+set static-route 10.155.7.120/29 nexthop gateway logical bond1.1186 on
+set static-route 10.155.7.120/29 scopelocal on
+set static-route 10.155.7.128/29 nexthop gateway logical bond1.1187 on
+set static-route 10.155.7.128/29 scopelocal on
+set static-route 10.155.7.136/29 nexthop gateway logical bond1.1188 on
+set static-route 10.155.7.136/29 scopelocal on
+set static-route 10.155.7.144/29 nexthop gateway logical bond1.1189 on
+set static-route 10.155.7.144/29 scopelocal on
+set static-route 10.155.7.168/29 nexthop gateway logical bond1.1193 on
+set static-route 10.155.7.168/29 scopelocal on
+set static-route 10.155.7.176/29 nexthop gateway logical bond1.988 on
+set static-route 10.155.7.176/29 scopelocal on
+set static-route 10.155.10.16/28 nexthop gateway logical bond1.807 on
+set static-route 10.155.10.16/28 scopelocal on
+set static-route 10.155.10.32/28 nexthop gateway logical bond1.847 on
+set static-route 10.155.10.32/28 scopelocal on
+set static-route 10.155.10.48/28 nexthop gateway logical bond1.815 on
+set static-route 10.155.10.48/28 scopelocal on
+set static-route 10.155.10.64/28 nexthop gateway logical bond1.830 on
+set static-route 10.155.10.64/28 scopelocal on
+set static-route 10.155.10.80/28 nexthop gateway logical bond1.987 on
+set static-route 10.155.10.80/28 scopelocal on
+set static-route 10.155.10.96/28 nexthop gateway logical bond1.1185 on
+set static-route 10.155.10.96/28 scopelocal on
+set static-route 10.155.11.32/28 nexthop gateway logical bond1.974 on
+set static-route 10.155.11.32/28 scopelocal on
+set static-route 10.155.11.48/28 nexthop gateway logical bond1.1161 on
+set static-route 10.155.11.48/28 scopelocal on
+set static-route 10.155.11.64/28 nexthop gateway logical bond1.1162 on
+set static-route 10.155.11.64/28 scopelocal on
+set static-route 10.155.11.112/28 nexthop gateway logical bond1.1175 on
+set static-route 10.155.11.112/28 scopelocal on
+set static-route 10.155.11.128/28 nexthop gateway logical bond1.1180 on
+set static-route 10.155.11.128/28 scopelocal on
+set static-route 10.155.30.32/27 nexthop gateway logical bond1.1158 on
+set static-route 10.155.30.32/27 scopelocal on
+set static-route 10.155.30.64/27 nexthop gateway logical bond1.981 on
+set static-route 10.155.30.64/27 scopelocal on
+set static-route 10.155.30.96/27 nexthop gateway logical bond1.982 on
+set static-route 10.155.30.96/27 scopelocal on
+set static-route 10.155.30.128/27 nexthop gateway logical bond1.1192 on
+set static-route 10.155.30.128/27 scopelocal on
+set static-route 10.155.51.0/26 nexthop gateway logical bond1.1169 on
+set static-route 10.155.51.0/26 scopelocal on
+set static-route 10.155.80.0/24 nexthop gateway logical bond1.803 on
+set static-route 10.155.80.0/24 scopelocal on
+xenon:12>
+xenon:12>
+xenon:12>
+xenon:12>

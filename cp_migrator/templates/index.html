@@ -122,19 +122,23 @@
   <div class="row g-3 mb-3">
     <div class="col-md-4">
       <div class="card h-100">
-        <div class="card-header"><i class="bi bi-folder2-open"></i>Data Sources</div>
+        <div class="card-header"><i class="bi bi-folder2-open"></i>TAP Directory</div>
         <div class="card-body">
-          <dl class="row mb-0 small">
-            <dt class="col-6">TAP Directory</dt>
-            <dd class="col-6 text-break" id="ddTapDir">—</dd>
+          <label class="form-label fw-semibold small">Path to TAP folder</label>
+          <div class="input-group input-group-sm mb-2">
+            <span class="input-group-text"><i class="bi bi-folder"></i></span>
+            <input type="text" class="form-control" id="tapDirInput"
+                   placeholder="/path/to/TAP" value="CheckPoint_Files" style="font-family:monospace;">
+          </div>
+          <button class="btn btn-sm btn-primary w-100 mb-2" id="rescanBtn">
+            <i class="bi bi-search"></i> Scan
+          </button>
+          <dl class="row mb-0 small text-muted">
             <dt class="col-6">VS Detected</dt>
             <dd class="col-6" id="ddVsCount">—</dd>
             <dt class="col-6">Packages Found</dt>
             <dd class="col-6" id="ddPkgCount">—</dd>
           </dl>
-          <button class="btn btn-sm btn-outline-secondary mt-2 w-100" id="rescanBtn">
-            <i class="bi bi-arrow-clockwise"></i> Re-scan
-          </button>
         </div>
       </div>
     </div>
@@ -173,13 +177,14 @@
               <th width="36"><input type="checkbox" id="masterCheck" title="Toggle all"></th>
               <th>VS ID</th>
               <th>VS Name</th>
+              <th>Target Vsys</th>
               <th>Policy Package</th>
               <th class="text-center" title="show_configuration">Config</th>
               <th class="text-center" title="show_route">Route</th>
             </tr>
           </thead>
           <tbody id="vsTableBody">
-            <tr><td colspan="6" class="text-center text-muted py-3">Scanning&hellip;</td></tr>
+            <tr><td colspan="7" class="text-center text-muted py-3">Scanning&hellip;</td></tr>
           </tbody>
         </table>
       </div>
@@ -215,6 +220,21 @@
       <button class="btn btn-sm btn-outline-secondary" id="addIfaceBtn">
         <i class="bi bi-plus-circle"></i> Add Mapping
       </button>
+    </div>
+  </div>
+
+  <!-- Template Settings -->
+  <div class="card mb-3">
+    <div class="card-header"><i class="bi bi-hdd-rack"></i>Template Settings</div>
+    <div class="card-body">
+      <div class="row align-items-end">
+        <div class="col-md-4">
+          <label class="form-label fw-semibold small">Template Name</label>
+          <input type="text" class="form-control form-control-sm" id="templateName"
+                 placeholder="e.g. Tmpl-FW01" value="Tmpl-Migration">
+          <div class="form-text">Single Panorama template that will contain all vsys.</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -303,7 +323,7 @@
               <tr>
                 <th>VS Name</th>
                 <th>Device Group</th>
-                <th>Template</th>
+                <th>Vsys</th>
                 <th>Addr Objs</th>
                 <th>Svc Objs</th>
                 <th>Sec Rules</th>
@@ -381,9 +401,15 @@ function escHtml(s) {
    Scan
    ========================================================= */
 async function doScan() {
+  const tapDir = document.getElementById('tapDirInput').value.trim();
+  if (!tapDir) {
+    showAlert('Please enter the path to the TAP directory.', 'warning');
+    return;
+  }
+
   showSpinner('Scanning TAP directory…');
   try {
-    const resp = await fetch('/api/scan');
+    const resp = await fetch(`/api/scan?tap_dir=${encodeURIComponent(tapDir)}`);
     const data = await resp.json();
     if (data.error) throw new Error(data.error);
 
@@ -391,10 +417,9 @@ async function doScan() {
     _allPackages = data.all_packages || [];
     _ifaceMap    = data.default_interface_map || {};
 
-    document.getElementById('ddTapDir').textContent  = data.tap_dir || '—';
     document.getElementById('tapDirLabel').textContent = data.tap_dir || '';
-    document.getElementById('ddVsCount').textContent  = _vsListData.length;
-    document.getElementById('ddPkgCount').textContent = _allPackages.length;
+    document.getElementById('ddVsCount').textContent   = _vsListData.length;
+    document.getElementById('ddPkgCount').textContent  = _allPackages.length;
 
     renderVsTable();
     renderIfaceTable();
@@ -415,7 +440,7 @@ async function doScan() {
 function renderVsTable() {
   const tbody = document.getElementById('vsTableBody');
   if (!_vsListData.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">No VS found.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-3">No VS found.</td></tr>';
     return;
   }
 
@@ -425,10 +450,15 @@ function renderVsTable() {
 
   tbody.innerHTML = _vsListData.map((vs, idx) => {
     const selPkg  = vs.package_file || '';
+    const defaultVsys = `vsys${idx + 1}`;
     return `<tr>
       <td><input type="checkbox" class="vs-check form-check-input" data-idx="${idx}" checked></td>
       <td><span class="badge bg-secondary">${escHtml(vs.vs_id)}</span></td>
       <td><strong>${escHtml(vs.vs_name)}</strong></td>
+      <td>
+        <input type="text" class="form-control form-control-sm vsys-input" data-idx="${idx}"
+               value="${defaultVsys}" placeholder="vsys1" style="font-family:monospace;width:90px;">
+      </td>
       <td>
         <select class="form-select form-select-sm pkg-select" data-idx="${idx}" style="font-size:.78rem;min-width:200px;">
           <option value="">— none —</option>
@@ -573,10 +603,15 @@ async function doConvert() {
 
   const selectedVs = checks.map(c => {
     const idx = parseInt(c.dataset.idx);
-    return _vsListData[idx];
+    const vs = {..._vsListData[idx]};
+    // Attach target_vsys from the input field
+    const vsysInput = document.querySelector(`.vsys-input[data-idx="${idx}"]`);
+    vs.target_vsys = vsysInput ? vsysInput.value.trim() : `vsys${idx + 1}`;
+    return vs;
   });
 
   const ifaceMap = collectIfaceMap();
+  const templateName = document.getElementById('templateName').value.trim() || 'Tmpl-Migration';
   const waveLabel = document.getElementById('waveLabel').value.trim();
   const appendMode = document.getElementById('appendMode').checked;
   const existingXml = (appendMode && _existingXmlContent) ? _existingXmlContent : null;
@@ -586,12 +621,16 @@ async function doConvert() {
     prefix_object_names:     document.getElementById('optPrefixNames').checked,
   };
 
+  const tapDir = document.getElementById('tapDirInput').value.trim();
+
   const body = {
-    selected_vs:  selectedVs,
-    interface_map: ifaceMap,
-    options:       options,
-    existing_xml:  existingXml,
-    wave_label:    waveLabel,
+    selected_vs:    selectedVs,
+    interface_map:  ifaceMap,
+    template_name:  templateName,
+    tap_dir:        tapDir,
+    options:        options,
+    existing_xml:   existingXml,
+    wave_label:     waveLabel,
   };
 
   showSpinner(`Converting ${selectedVs.length} VS…`);
@@ -649,11 +688,11 @@ function renderReport(report, xmlB64) {
     tbody.innerHTML += `<tr>
       <td><strong>${escHtml(r.vs_name)}</strong></td>
       <td class="small text-break">${escHtml(r.dg_name)}</td>
-      <td class="small text-break">${escHtml(r.tmpl_name)}</td>
+      <td class="small text-break"><code>${escHtml(r.target_vsys || '—')}</code></td>
       <td class="text-center">${addrTotal}</td>
       <td class="text-center">${svcTotal}</td>
-      <td class="text-center">${r.rules_converted?.security ?? 0}</td>
-      <td class="text-center">${r.rules_converted?.nat ?? 0}</td>
+      <td class="text-center">${r.rules_converted?.security ?? 0}${r.public_sec_rules ? ` <span class="badge bg-info badge-count" title="Copied to DG-Public">+${r.public_sec_rules} pub</span>` : ''}</td>
+      <td class="text-center">${r.rules_converted?.nat ?? 0}${r.public_nat_rules ? ` <span class="badge bg-info badge-count" title="Moved to DG-Public">+${r.public_nat_rules} pub</span>` : ''}</td>
       <td class="text-center">${r.interfaces ?? 0}</td>
       <td class="text-center">${r.vpn_tunnels ?? 0}</td>
       <td class="text-center">
@@ -727,7 +766,10 @@ document.getElementById('rescanBtn').addEventListener('click', doScan);
 /* =========================================================
    Init
    ========================================================= */
-doScan();
+// Auto-scan if default path is set
+if (document.getElementById('tapDirInput').value.trim()) {
+  doScan();
+}
 </script>
 </body>
 </html>

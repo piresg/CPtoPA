@@ -1,0 +1,218 @@
+xenon:9> show virtual-system all
+Virtual systems list
+VS ID       VS NAME
+0           0
+3           XENON_VS-CLIENTES
+4           XENON_VS-MOBILE
+6           XENON_VS-WEB1
+7           XENON_VS-DMZ
+8           XENON_VS-ENTIDADES
+9           XENON_VS-INTERNET
+10          XENON_VS-WEBX
+11          XENON_VS-RBVPN
+12          XENON_VS-CPDNETS
+13          XENON_VS-NAAS
+xenon:9>
+xenon:9> show route
+Codes: C - Connected, S - Static, R - RIP, B - BGP (D - Default),
+       O - OSPF IntraArea (IA - InterArea, E - External, N - NSSA),
+       A - Aggregate, K - Kernel Remnant, H - Hidden, P - Suppressed,
+       NP - NAT Pool, U - Unreachable, i - Inactive
+
+S               0.0.0.0/0           via 91.198.90.4, bond1.520, cost 0, age 254910
+S               10.0.0.0/8          via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.1.0.0/21         via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.1.26.0/23        via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.2.0.0/21         via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.2.26.0/23        via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.2.110.0/24       via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.5.2.192/26       via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.10.1.0/24        via 192.168.2.22, bond1.590, cost 0, age 254910
+S               10.20.50.0/24       via 192.168.2.11, bond1.590, cost 0, age 254910
+S               10.21.254.0/24      via 192.168.2.22, bond1.590, cost 0, age 254910
+S               10.24.8.111/32      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.27.0.0/16        via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.30.49.0/24       via 192.168.2.11, bond1.590, cost 0, age 254910
+S               10.30.51.0/24       via 192.168.2.11, bond1.590, cost 0, age 254910
+S               10.30.64.0/24       via 192.168.2.11, bond1.590, cost 0, age 254910
+S               10.92.175.103/32    via 172.16.253.177, bond1.533, cost 0, age 254910
+S               10.92.175.105/32    via 172.16.253.177, bond1.533, cost 0, age 254910
+S               10.92.216.166/32    via 172.16.253.177, bond1.533, cost 0, age 254910
+S               10.99.0.0/20        via 10.128.3.101, bond1.431, cost 0, age 254910
+S               10.100.0.0/16       via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.100.188.0/24     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.100.189.0/24     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.100.190.0/24     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.100.200.0/24     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.100.201.0/24     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.100.203.0/24     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.100.204.0/24     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.100.205.0/24     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.100.207.0/24     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.100.208.0/24     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.100.211.0/24     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.100.214.0/24     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.100.215.0/24     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.100.216.0/24     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.100.231.0/24     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.101.0.0/24       via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.101.1.0/24       via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.101.2.0/24       via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.124.147.160/28   via 10.154.0.62, bond1.219, cost 0, age 254910
+C               10.128.0.0/24       is directly connected, bond1.11
+S               10.128.1.0/24       via 10.128.0.254, bond1.11, cost 0, age 254910
+C               10.128.2.0/24       is directly connected, bond1.430
+C               10.128.3.0/24       is directly connected, bond1.431
+S               10.128.4.0/22       via 10.128.0.254, bond1.11, cost 0, age 254910
+C               10.128.8.0/26       is directly connected, bond1.426
+C               10.128.8.64/26      is directly connected, bond1.434
+C               10.128.9.0/24       is directly connected, bond1.433
+C               10.128.64.0/24      is directly connected, bond1.440
+C               10.128.65.0/26      is directly connected, bond1.441
+C               10.128.66.0/27      is directly connected, bond1.445
+S               10.129.0.0/16       via 10.154.0.62, bond1.219, cost 0, age 254910
+C               10.154.0.56/29      is directly connected, bond1.219
+C               10.155.0.24/29      is directly connected, bond1.802
+S               10.155.6.24/29      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.200.2.160/27     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.201.0.11/32      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.201.0.14/32      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.201.0.17/32      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.201.10.0/24      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               10.201.15.0/29      via 192.168.2.12, bond1.590, cost 0, age 254910
+S               10.201.15.8/29      via 192.168.2.12, bond1.590, cost 0, age 254910
+S               10.202.0.0/16       via 10.154.0.62, bond1.219, cost 0, age 254910
+C               10.222.222.0/24     is directly connected, bond1.463
+S               10.240.102.0/24     via 192.168.2.8, bond1.590, cost 0, age 254910
+S               57.5.0.0/16         via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.6.17.82/32       via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.8.81.11/32       via 192.168.2.25, bond1.590, cost 0, age 254910
+S               57.8.81.13/32       via 192.168.2.25, bond1.590, cost 0, age 254910
+S               57.8.81.111/32      via 192.168.2.25, bond1.590, cost 0, age 254910
+S               57.8.81.113/32      via 192.168.2.25, bond1.590, cost 0, age 254910
+S               57.20.37.48/29      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.20.37.56/29      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.31.95.17/32      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.31.95.21/32      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.56.77.148/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.56.79.148/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.56.160.0/24      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.56.239.16/32     via 10.128.0.204, bond1.11, cost 0, age 254910
+S               57.56.239.17/32     via 10.128.0.204, bond1.11, cost 0, age 254910
+S               57.56.239.18/32     via 10.128.0.204, bond1.11, cost 0, age 254910
+S               57.56.239.19/32     via 10.128.0.204, bond1.11, cost 0, age 254910
+S               57.56.239.20/32     via 10.128.0.204, bond1.11, cost 0, age 254910
+S               57.56.239.21/32     via 10.128.0.204, bond1.11, cost 0, age 254910
+S               57.60.58.15/32      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.58.21/32      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.58.29/32      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.68.22/32      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.68.150/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.68.204/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.88.35/32      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.92.9/32       via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.92.199/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.118.30/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.150.3/32      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.150.31/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.150.32/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.151.3/32      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.151.31/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.151.32/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.154.111/32    via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.154.112/32    via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.158.65/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.158.66/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.162.75/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.60.164.65/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.227.0.0/16       via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.229.0.0/16       via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.230.80.50/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.230.88.50/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.233.28.129/32    via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.233.33.12/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.234.0.0/16       via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.253.59.192/29    via 10.154.0.62, bond1.219, cost 0, age 254910
+S               57.253.85.144/28    via 10.154.0.62, bond1.219, cost 0, age 254910
+C               62.47.171.16/28     is directly connected, bond1.510
+C               62.48.171.32/27     is directly connected, bond1.511
+S               80.251.171.174/32   via 10.154.0.62, bond1.219, cost 0, age 254910
+S               80.251.171.175/32   via 10.154.0.62, bond1.219, cost 0, age 254910
+S               83.125.36.80/28     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               83.125.36.86/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               83.125.36.92/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               89.115.233.255/32   via 10.154.0.62, bond1.219, cost 0, age 254910
+C               91.198.90.0/28      is directly connected, bond1.520
+C               91.198.90.240/28    is directly connected, bond1.530
+S               100.64.4.0/24       via 10.154.0.62, bond1.219, cost 0, age 254910
+C               127.0.0.0/8         is directly connected, lo
+S               129.1.2.0/24        via 10.154.0.62, bond1.219, cost 0, age 254910
+S               129.1.4.0/24        via 10.154.0.62, bond1.219, cost 0, age 254910
+S               129.1.20.0/24       via 10.154.0.62, bond1.219, cost 0, age 254910
+S               129.1.21.0/24       via 10.154.0.62, bond1.219, cost 0, age 254910
+S               144.194.18.36/32    via 10.154.0.62, bond1.219, cost 0, age 254910
+S               151.193.54.100/32   via 10.154.0.62, bond1.219, cost 0, age 254910
+S               151.193.58.100/32   via 10.154.0.62, bond1.219, cost 0, age 254910
+S               151.193.59.100/32   via 10.154.0.62, bond1.219, cost 0, age 254910
+S               155.195.0.0/16      via 192.168.2.10, bond1.590, cost 0, age 254910
+S               159.8.248.48/28     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               159.122.17.32/28    via 10.154.0.62, bond1.219, cost 0, age 254910
+S               166.8.0.0/14        via 10.154.0.62, bond1.219, cost 0, age 254910
+S               169.50.38.80/28     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               171.17.10.174/32    via 10.154.0.62, bond1.219, cost 0, age 254910
+S               171.17.15.3/32      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               171.17.16.3/32      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               171.17.30.1/32      via 10.154.0.62, bond1.219, cost 0, age 254910
+S               171.17.30.10/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               171.17.36.31/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               171.17.36.226/32    via 10.154.0.62, bond1.219, cost 0, age 254910
+S               171.17.37.31/32     via 10.154.0.62, bond1.219, cost 0, age 254910
+S               171.17.37.226/32    via 10.154.0.62, bond1.219, cost 0, age 254910
+S               171.17.38.2/32      via 10.154.0.62, bond1.219, cost 0, age 254911
+S               171.17.38.31/32     via 10.154.0.62, bond1.219, cost 0, age 254911
+S               171.17.38.226/32    via 10.154.0.62, bond1.219, cost 0, age 254911
+S               171.17.39.2/32      via 10.154.0.62, bond1.219, cost 0, age 254911
+S               171.17.39.31/32     via 10.154.0.62, bond1.219, cost 0, age 254911
+S               171.17.39.226/32    via 10.154.0.62, bond1.219, cost 0, age 254911
+S               171.17.95.129/32    via 10.154.0.62, bond1.219, cost 0, age 254911
+S               171.17.95.130/32    via 10.154.0.62, bond1.219, cost 0, age 254911
+S               171.17.100.104/29   via 10.154.0.62, bond1.219, cost 0, age 254911
+S               171.17.101.128/29   via 10.154.0.62, bond1.219, cost 0, age 254911
+S               171.17.192.1/32     via 10.154.0.62, bond1.219, cost 0, age 254911
+S               171.17.192.2/32     via 10.154.0.62, bond1.219, cost 0, age 254911
+S               171.17.192.3/32     via 10.154.0.62, bond1.219, cost 0, age 254911
+S               172.16.0.0/12       via 10.154.0.62, bond1.219, cost 0, age 254911
+C               172.16.253.176/28   is directly connected, bond1.533
+C               172.17.24.0/24      is directly connected, bond1.449
+C               172.17.232.0/24     is directly connected, bond1.448
+S               185.129.225.0/25    via 10.154.0.62, bond1.219, cost 0, age 254911
+S               186.225.161.30/32   via 10.154.0.62, bond1.219, cost 0, age 254911
+S               186.225.164.30/32   via 10.154.0.62, bond1.219, cost 0, age 254911
+S               189.45.216.22/32    via 10.154.0.62, bond1.219, cost 0, age 254911
+S               189.45.220.19/32    via 10.154.0.62, bond1.219, cost 0, age 254911
+S               192.1.0.0/16        via 10.154.0.62, bond1.219, cost 0, age 254911
+S               192.7.0.0/16        via 10.154.0.62, bond1.219, cost 0, age 254911
+S               192.39.28.0/24      via 10.154.0.62, bond1.219, cost 0, age 254911
+S               192.168.0.0/16      via 10.154.0.62, bond1.219, cost 0, age 254911
+C               192.168.2.0/25      is directly connected, bond1.590
+C               192.168.3.0/26      is directly connected, bond1.4
+C               192.168.4.0/24      is directly connected, bond1.72
+S               192.168.60.0/24     via 192.168.2.30, bond1.590, cost 0, age 254911
+S               192.168.106.0/24    via 192.168.2.9, bond1.590, cost 0, age 254911
+C               192.168.128.0/24    is directly connected, bond1.8
+S               192.168.228.0/24    via 192.168.2.15, bond1.590, cost 0, age 254911
+S               193.23.185.0/24     via 10.154.0.62, bond1.219, cost 0, age 254911
+S               193.30.167.52/32    via 10.154.0.62, bond1.219, cost 0, age 254911
+S               193.58.9.89/32      via 10.154.0.62, bond1.219, cost 0, age 254911
+S               194.29.116.0/25     via 10.154.0.62, bond1.219, cost 0, age 254911
+S               194.29.116.192/27   via 10.154.0.62, bond1.219, cost 0, age 254911
+S               194.29.117.0/25     via 10.154.0.62, bond1.219, cost 0, age 254911
+S               194.29.117.192/27   via 10.154.0.62, bond1.219, cost 0, age 254911
+S               194.76.166.0/24     via 10.154.0.62, bond1.219, cost 0, age 254911
+S               194.156.170.0/23    via 10.154.0.62, bond1.219, cost 0, age 254911
+S               194.174.193.240/32  via 10.154.0.62, bond1.219, cost 0, age 254911
+S               195.23.46.119/32    via 10.154.0.62, bond1.219, cost 0, age 254911
+S               195.160.8.0/24      via 10.154.0.62, bond1.219, cost 0, age 254911
+S               198.18.15.0/24      via 10.154.0.62, bond1.219, cost 0, age 254911
+S               204.230.92.11/32    via 10.154.0.62, bond1.219, cost 0, age 254911
+xenon:9>

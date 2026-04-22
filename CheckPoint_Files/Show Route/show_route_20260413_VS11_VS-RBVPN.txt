@@ -1,0 +1,117 @@
+xenon:11> show virtual-system all
+Virtual systems list
+VS ID       VS NAME
+0           0
+3           XENON_VS-CLIENTES
+4           XENON_VS-MOBILE
+6           XENON_VS-WEB1
+7           XENON_VS-DMZ
+8           XENON_VS-ENTIDADES
+9           XENON_VS-INTERNET
+10          XENON_VS-WEBX
+11          XENON_VS-RBVPN
+12          XENON_VS-CPDNETS
+13          XENON_VS-NAAS
+xenon:11>
+xenon:11> show route
+Codes: C - Connected, S - Static, R - RIP, B - BGP (D - Default),
+       O - OSPF IntraArea (IA - InterArea, E - External, N - NSSA),
+       A - Aggregate, K - Kernel Remnant, H - Hidden, P - Suppressed,
+       NP - NAT Pool, U - Unreachable, i - Inactive
+
+S               0.0.0.0/0           via 91.198.90.4, eth4-02.520, cost 0, age 254985
+B               10.0.37.0/26        via 169.254.128.133, vpnt21, cost None, age 116434
+B               10.0.37.64/26       via 169.254.128.133, vpnt21, cost None, age 116434
+B               10.0.37.128/26      via 169.254.128.133, vpnt21, cost None, age 116434
+B               10.0.37.192/26      via 169.254.128.133, vpnt21, cost None, age 116434
+B               10.0.88.0/24        via 169.254.73.165, vpnt24, cost None, age 11532
+B               10.5.2.192/26       via 100.64.18.25, vpnt1, cost None, age 254939
+B               10.5.15.144/28      via 100.64.18.25, vpnt1, cost None, age 254939
+B               10.5.137.68/32      via 100.64.18.25, vpnt1, cost None, age 254939
+B               10.19.151.80/28     via 100.64.18.25, vpnt1, cost None, age 254939
+S               10.88.0.0/17        via 10.154.0.78, eth4-02.221, cost 0, age 254985
+S               10.88.128.0/17      via 10.154.0.78, eth4-02.221, cost 0, age 254985
+S               10.100.187.0/24     via 10.154.0.78, eth4-02.221, cost 0, age 9581
+S               10.100.197.0/24     via 10.154.0.78, eth4-02.221, cost 0, age 254985
+S               10.100.198.0/23     via 10.154.0.78, eth4-02.221, cost 0, age 254985
+S               10.100.237.0/24     via 10.154.0.78, eth4-02.221, cost 0, age 254985
+S               10.100.241.0/24     via 10.154.0.78, eth4-02.221, cost 0, age 254985
+S               10.100.250.0/24     via 10.154.0.78, eth4-02.221, cost 0, age 254985
+S               10.107.0.224/28     via 10.154.0.78, eth4-02.221, cost 0, age 254985
+S               10.107.0.240/28     via 10.154.0.78, eth4-02.221, cost 0, age 254985
+S               10.107.1.0/28       via 10.154.0.78, eth4-02.221, cost 0, age 254985
+S               10.107.1.16/28      via 10.154.0.78, eth4-02.221, cost 0, age 254985
+S               10.107.1.96/27      via 10.154.0.78, eth4-02.221, cost 0, age 254985
+B               10.111.8.0/24       via 169.254.54.209, vpnt12, cost None, age 1337
+B               10.111.9.0/24       via 169.254.54.209, vpnt12, cost None, age 1337
+B               10.111.10.0/24      via 169.254.54.209, vpnt12, cost None, age 1337
+B               10.111.11.0/24      via 169.254.54.209, vpnt12, cost None, age 1337
+B               10.111.13.0/24      via 169.254.54.209, vpnt12, cost None, age 1337
+B               10.111.17.0/24      via 169.254.54.209, vpnt12, cost None, age 1337
+B               10.111.25.0/24      via 169.254.54.209, vpnt12, cost None, age 1337
+B               10.111.32.0/24      via 169.254.54.209, vpnt12, cost None, age 1337
+B               10.121.0.0/16       via 169.254.54.209, vpnt12, cost None, age 1337
+B               10.125.0.0/16       via 169.254.54.209, vpnt12, cost None, age 1337
+S               10.128.0.0/24       via 10.154.0.78, eth4-02.221, cost 0, age 254985
+S               10.128.9.0/24       via 10.154.0.78, eth4-02.221, cost 0, age 254985
+S               10.128.9.45/32      via 10.154.0.78, eth4-02.221, cost 0, age 254985
+S               10.128.64.0/24      via 10.154.0.78, eth4-02.221, cost 0, age 254985
+B               10.134.0.0/24       via 169.254.80.93, vpnt42, cost None, age 254902
+C               10.154.0.72/29      is directly connected, eth4-02.221
+S               10.155.6.40/29      via 10.154.0.78, eth4-02.221, cost 0, age 254985
+S               10.155.6.208/29     via 10.154.0.78, eth4-02.221, cost 0, age 254985
+S               10.155.30.96/27     via 10.154.0.78, eth4-02.221, cost 0, age 254985
+S               10.155.51.0/26      via 10.154.0.78, eth4-02.221, cost 0, age 254985
+S               10.155.80.0/24      via 10.154.0.78, eth4-02.221, cost 0, age 9581
+B               10.160.52.0/23      via 169.254.231.45, vpnt34, cost None, age 254914
+B               10.160.54.0/23      via 169.254.140.101, vpnt31, cost None, age 254899
+S               10.200.0.0/24       via 10.154.0.78, eth4-02.221, cost 0, age 254985
+S               10.201.0.42/32      via 10.154.0.78, eth4-02.221, cost 0, age 254985
+S               10.201.0.47/32      via 10.154.0.78, eth4-02.221, cost 0, age 254985
+B               57.20.37.48/28      via 100.64.18.25, vpnt1, cost None, age 254939
+C               91.198.90.0/28      is directly connected, eth4-02.520
+S               91.198.90.192/26    via 91.198.90.4, eth4-02.520, cost 0, age 254985
+S               91.198.90.204/32    via 91.198.90.4, eth4-02.520, cost 0, age 254985
+S               91.198.90.216/32    via 91.198.90.4, eth4-02.520, cost 0, age 254985
+C               100.64.18.25/32     is directly connected, vpnt1
+C               100.64.18.26/32     is directly connected, vpnt1
+C               100.64.18.29/32     is directly connected, vpnt2
+C               100.64.18.30/32     is directly connected, vpnt2
+C               127.0.0.0/8         is directly connected, lo
+C               169.254.54.209/32   is directly connected, vpnt12
+C               169.254.54.210/32   is directly connected, vpnt12
+C               169.254.73.165/32   is directly connected, vpnt24
+C               169.254.73.166/32   is directly connected, vpnt24
+C               169.254.80.93/32    is directly connected, vpnt42
+C               169.254.80.94/32    is directly connected, vpnt42
+C               169.254.128.133/32  is directly connected, vpnt21
+C               169.254.128.134/32  is directly connected, vpnt21
+C               169.254.133.65/32   is directly connected, vpnt11
+C               169.254.133.66/32   is directly connected, vpnt11
+C               169.254.140.101/32  is directly connected, vpnt31
+C               169.254.140.102/32  is directly connected, vpnt31
+C               169.254.189.133/32  is directly connected, vpnt41
+C               169.254.189.134/32  is directly connected, vpnt41
+C               169.254.198.145/32  is directly connected, vpnt32
+C               169.254.198.146/32  is directly connected, vpnt32
+C               169.254.206.33/32   is directly connected, vpnt22
+C               169.254.206.34/32   is directly connected, vpnt22
+C               169.254.229.109/32  is directly connected, vpnt23
+C               169.254.229.110/32  is directly connected, vpnt23
+C               169.254.231.45/32   is directly connected, vpnt34
+C               169.254.231.46/32   is directly connected, vpnt34
+C               169.254.236.77/32   is directly connected, vpnt33
+C               169.254.236.78/32   is directly connected, vpnt33
+S               172.16.0.0/12       via 10.154.0.78, eth4-02.221, cost 0, age 254986
+S               172.17.12.0/24      via 10.154.0.78, eth4-02.221, cost 0, age 254986
+S               172.17.32.5/32      via 10.154.0.78, eth4-02.221, cost 0, age 254986
+S               172.26.132.0/22     via 10.154.0.78, eth4-02.221, cost 0, age 9582
+S               172.28.0.135/32     via 10.154.0.78, eth4-02.221, cost 0, age 254986
+S               172.28.0.137/32     via 10.154.0.78, eth4-02.221, cost 0, age 254986
+S               172.30.2.0/23       via 10.154.0.78, eth4-02.221, cost 0, age 254986
+S               192.168.0.0/16      via 10.154.0.78, eth4-02.221, cost 0, age 254986
+S               192.168.3.0/26      via 10.154.0.78, eth4-02.221, cost 0, age 254986
+S               192.168.40.0/24     via 10.154.0.78, eth4-02.221, cost 0, age 254986
+S               192.168.221.0/24    via 10.154.0.78, eth4-02.221, cost 0, age 254986
+S               192.168.222.0/24    via 10.154.0.78, eth4-02.221, cost 0, age 254986
+xenon:11>

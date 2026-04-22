@@ -20,6 +20,7 @@ conversion_report is a list of per-VS dicts:
 }
 """
 
+import copy
 import re
 import ipaddress
 import logging
@@ -179,10 +180,30 @@ def _cp_obj_to_appid(obj):
 
 # Default interface mapping CP name prefix → PAN name prefix
 DEFAULT_INTERFACE_MAP = {
-    'bond1':  'ae1',
-    'bond2':  'ae2',
-    'bond10': 'ae3',
+    'bond1':        'ae1',
+    'bond2':        'ae2',
+    'bond10':       'ae3',
+    'ethernet4/1':  'ae1',
 }
+
+# VLAN 5 remapping: old inter-VS link (192.168.25.0/24) → new per-VS subinterface + IP
+VLAN5_REMAP = {
+    'VS-CPDNETS':   {'pan_iface': 'ae1.212', 'ip': '10.154.0.1',   'mask': 29},
+    'VS-NAAS':      {'pan_iface': 'ae1.213', 'ip': '10.154.0.9',   'mask': 29},
+    'VS-WEB1':      {'pan_iface': 'ae1.214', 'ip': '10.154.0.17',  'mask': 29},
+    'VS-WEBX':      {'pan_iface': 'ae1.215', 'ip': '10.154.0.25',  'mask': 29},
+    'VS-CLIENTES':  {'pan_iface': 'ae1.216', 'ip': '10.154.0.33',  'mask': 29},
+    'VS-ENTIDADES': {'pan_iface': 'ae1.217', 'ip': '10.154.0.41',  'mask': 29},
+    'VS-DMZ':       {'pan_iface': 'ae1.218', 'ip': '10.154.0.49',  'mask': 29},
+    'VS-INTERNET':  {'pan_iface': 'ae1.219', 'ip': '10.154.0.57',  'mask': 29},
+    'VS-MOBILE':    {'pan_iface': 'ae1.223', 'ip': '10.154.0.81',  'mask': 29},
+    'VS-RBVPN':     {'pan_iface': 'ae1.221', 'ip': '10.154.0.73',  'mask': 29},
+}
+VLAN5_TAG = '5'
+
+# Public (VLAN 520) vsys — single zone name used by all rules copied to DG-Public
+PUBLIC_VLAN_TAG = '520'
+PUBLIC_ZONE_NAME = f"Public_{PUBLIC_VLAN_TAG}"
 # Regex for eth interfaces: ethX-YZ → ethernetX/Y
 _ETH_RE = re.compile(r'^eth(\d+)-(\d+)$', re.IGNORECASE)
 
@@ -215,7 +236,9 @@ def _map_base_iface(cp_base, iface_map):
         return iface_map[cp_base]
     m = _ETH_RE.match(cp_base)
     if m:
-        return f"ethernet{m.group(1)}/{int(m.group(2))}"  # strip leading zeros
+        pan_name = f"ethernet{m.group(1)}/{int(m.group(2))}"  # strip leading zeros
+        # Check if the converted PAN name has an override (e.g. ethernet4/1 → ae1)
+        return iface_map.get(pan_name, pan_name)
     return None
 
 
@@ -628,10 +651,25 @@ def _build_section_map(rules_list):
 # Security rules builder
 # ---------------------------------------------------------------------------
 
-def _build_zone_map(iface_data, iface_map):
+def _zone_name_for_iface(cp_iface, vsys_label):
+    """Derive zone name as {vsys_label}_{vlan_id}.
+
+    If the CP interface has a dot (e.g. bond1.520), the VLAN ID is the part
+    after the last dot.  For untagged interfaces the full sanitized interface
+    name is used as suffix.
+    """
+    parts = cp_iface.split('.')
+    if len(parts) >= 2:
+        suffix = parts[-1]          # VLAN tag, e.g. "520"
+    else:
+        suffix = sanitize_name(cp_iface)
+    return f"{vsys_label}_{suffix}"
+
+
+def _build_zone_map(iface_data, iface_map, vsys_label=''):
     """
     Build a list of (zone_name, IPv4Network) from interface data.
-    zone_name matches what _build_template creates (cp_iface with dots→hyphens).
+    zone_name follows the pattern {vsys_label}_{vlan_id}.
     """
     zones = []
     for cp_iface, info in iface_data.items():
@@ -641,7 +679,7 @@ def _build_zone_map(iface_data, iface_map):
             continue
         try:
             net = ipaddress.IPv4Network(f"{ip}/{ml}", strict=False)
-            zone_name = cp_iface.replace('.', '-')
+            zone_name = _zone_name_for_iface(cp_iface, vsys_label)
             zones.append((zone_name, net))
         except ValueError:
             pass
@@ -769,6 +807,9 @@ def _build_security_rules(rules_list, resolver, used_rule_names, warnings, zone_
                 added = True
             if not added:
                 _member(src_el, 'any')
+        # Final guard: PAN-OS rejects empty source arrays
+        if len(src_el) == 0:
+            _member(src_el, 'any')
         if item.get('source-negate'):
             _sub(entry, 'negate-source', 'yes')
         if src_users:
@@ -791,6 +832,9 @@ def _build_security_rules(rules_list, resolver, used_rule_names, warnings, zone_
                 added = True
             if not added:
                 _member(dst_el, 'any')
+        # Final guard: PAN-OS rejects empty destination arrays
+        if len(dst_el) == 0:
+            _member(dst_el, 'any')
         if item.get('destination-negate'):
             _sub(entry, 'negate-destination', 'yes')
 
@@ -887,6 +931,92 @@ def _build_security_rules(rules_list, resolver, used_rule_names, warnings, zone_
 # ---------------------------------------------------------------------------
 
 _ORIGINAL_SENTINEL = {'97aeb369-9aea-11d5-bd16-0090272ccb30'}  # CP "Any" for NAT
+
+
+def _uid_matches_subnets(uid, uid_map, subnets, depth=0):
+    """Check if a UID resolves to an IP that falls within any of the given subnets."""
+    if depth > 5 or not uid or not subnets:
+        return False
+    obj = uid_map.get(uid)
+    if obj is None:
+        return False
+    obj_type = obj.get('type', '')
+    if obj_type == 'CpmiAnyObject' or obj.get('name', '').lower() == 'any':
+        return False
+    if obj_type == 'host':
+        ip_str = obj.get('ipv4-address', '')
+        if ip_str:
+            try:
+                addr = ipaddress.IPv4Address(ip_str)
+                return any(addr in net for net in subnets)
+            except ValueError:
+                pass
+    elif obj_type == 'network':
+        ip_str = obj.get('subnet4', '')
+        ml     = obj.get('mask-length4', 32)
+        if ip_str:
+            try:
+                net = ipaddress.IPv4Network(f"{ip_str}/{ml}", strict=False)
+                return any(net.overlaps(s) for s in subnets)
+            except ValueError:
+                pass
+    elif obj_type == 'address-range':
+        ip_first = obj.get('ipv4-address-first', '')
+        if ip_first:
+            try:
+                addr = ipaddress.IPv4Address(ip_first)
+                return any(addr in net for net in subnets)
+            except ValueError:
+                pass
+    elif obj_type == 'group':
+        for m_uid in obj.get('members', []):
+            if _uid_matches_subnets(m_uid, uid_map, subnets, depth + 1):
+                return True
+    return False
+
+
+def _nat_rule_involves_public(rule, uid_map, public_subnets):
+    """Check if a NAT rule involves any public (VLAN 520) IP address."""
+    if not public_subnets:
+        return False
+    for field in ('original-source', 'original-destination',
+                  'translated-source', 'translated-destination'):
+        uid = rule.get(field, '')
+        if uid and uid != 'original':
+            if _uid_matches_subnets(uid, uid_map, public_subnets):
+                return True
+    return False
+
+
+def _sec_rule_involves_public(rule, uid_map, public_subnets):
+    """Check if a security rule involves any public (VLAN 520) IP address."""
+    if not public_subnets:
+        return False
+    for field in ('source', 'destination'):
+        for uid in rule.get(field, []):
+            if _uid_matches_subnets(uid, uid_map, public_subnets):
+                return True
+    return False
+
+
+def _uids_match_subnets(uids, uid_map, subnets):
+    """True if any UID in the list resolves to an IP within the given subnets."""
+    if not subnets:
+        return False
+    for uid in uids:
+        if _uid_matches_subnets(uid, uid_map, subnets):
+            return True
+    return False
+
+
+def _rewrite_rule_zone(entry, tag, zone_name):
+    """Replace <from>/<to> contents of a rule entry with a single <member>zone</member>."""
+    el = entry.find(tag)
+    if el is None:
+        el = ET.SubElement(entry, tag)
+    for child in list(el):
+        el.remove(child)
+    _member(el, zone_name)
 
 
 def _nat_field(uid, resolver):
@@ -1017,6 +1147,10 @@ def _build_nat_rules(nat_list, resolver, used_rule_names, warnings, zone_map=Non
             dst_xlat_el = _sub(entry, 'destination-translation')
             _sub(dst_xlat_el, 'translated-address', trans_dst)
 
+        # Final guard: PAN-OS requires <service> in NAT rules
+        if entry.find('service') is None:
+            _sub(entry, 'service', 'any')
+
         # Description
         comment = item.get('comments', '')
         if comment:
@@ -1031,67 +1165,112 @@ def _build_nat_rules(nat_list, resolver, used_rule_names, warnings, zone_map=Non
 # Template builder (interfaces + routes + VPN)
 # ---------------------------------------------------------------------------
 
-def _build_template(vs_data, iface_map, warnings):
+def _build_template_vsys(vs_data, iface_map, network_el, vsys_container,
+                         target_vsys, warnings):
     """
-    Build a Panorama template ET.Element for the VS.
+    Build network config into the shared template's <network> element,
+    and create a vsys entry with zones + interface imports.
 
-    Returns ET.Element  <entry name="Tmpl-...">
+    Args:
+        vs_data:         parsed VS data dict
+        iface_map:       interface mapping dict
+        network_el:      the shared <network> element inside the single template
+        vsys_container:  the <vsys> container element inside the single template
+        target_vsys:     name of the vsys to create (e.g. 'vsys2')
+        warnings:        list to append warning strings to
+
+    Returns:
+        (iface_count, tunnel_count)
     """
-    tmpl_name = vs_data['tmpl_name']
-    vr_name   = vs_data['vr_name']
-    config    = vs_data.get('config', {})
-    routes    = vs_data.get('routes', [])
+    vr_name = vs_data['vr_name']
+    config  = vs_data.get('config', {})
+    routes  = vs_data.get('routes', [])
 
-    tmpl_entry = ET.Element('entry')
-    tmpl_entry.set('name', tmpl_name)
-
-    config_el   = _sub(tmpl_entry, 'config')
-    devices_el  = _sub(config_el, 'devices')
-    dev_entry   = _sub(devices_el, 'entry')
-    dev_entry.set('name', 'localhost.localdomain')
-    network_el  = _sub(dev_entry, 'network')
-
-    # ---- Interfaces ----
-    ifaces_el = _sub(network_el, 'interface')
-
-    cp_ifaces = config.get('interfaces', {})   # {cp_iface: {ip, mask_len}}
+    # ---- Resolve interface data ----
+    cp_ifaces = config.get('interfaces', {})
     gateway_ifaces = []
     pkg = vs_data.get('package', {})
     gw_objs = pkg.get('gateway_objects', [])
     if gw_objs:
-        # Use gateway_objects as authoritative interface list
         gw = gw_objs[0]
         gateway_ifaces = gw.get('interfaces', [])
 
-    # Build interface data exclusively from gateway_objects when available.
-    # show_configuration contains ALL interfaces from the entire VSX appliance
-    # (VPN bearer VLANs for every VS), so it must NOT be used as a fallback —
-    # it would flood this VS template with hundreds of wrong interfaces.
-    # Only fall back to show_configuration when gateway_objects has no interfaces at all.
     iface_data = {}  # {cp_iface_name: {ip, mask_len}}
     if gateway_ifaces:
         for gi in gateway_ifaces:
             iname = gi.get('interface-name', '')
             ip    = gi.get('ipv4-address', '')
             ml    = gi.get('ipv4-mask-length', 24)
-            # Skip CP VPN tunnel pseudo-interfaces (vpntN) — these are CP-internal
-            # representations of VPN tunnel endpoints and have no PAN equivalent.
-            # The actual tunnel interfaces are built from show_configuration VPN tunnels.
             if iname and ip and not re.match(r'^vpnt\d+$', iname, re.IGNORECASE):
                 iface_data[iname] = {'ip': ip, 'mask_len': int(ml)}
     else:
-        # No gateway_objects data — fall back to show_configuration.
-        # Filter to only interfaces that appear as directly-connected routes.
         connected_ifaces = {r['interface'] for r in vs_data.get('routes', [])
                             if r.get('interface')}
         for cp_iface, info in cp_ifaces.items():
             if cp_iface in connected_ifaces:
                 iface_data[cp_iface] = info
 
-    iface_count = 0
-    # Group interfaces by base (ae1, ethernet1/3, etc.)
-    pan_to_units = {}  # {pan_base: [(vlan, ip, mask_len), ...]}
+    # ---- Split interfaces: VLAN 520 → "Public" vsys, rest → target_vsys ----
+    public_iface_data = {}   # interfaces with VLAN 520
+    main_iface_data   = {}   # everything else
+
     for cp_iface, info in iface_data.items():
+        dot_pos = cp_iface.find('.')
+        vlan_tag = cp_iface[dot_pos+1:] if dot_pos != -1 else None
+        if vlan_tag == PUBLIC_VLAN_TAG:
+            public_iface_data[cp_iface] = info
+        else:
+            main_iface_data[cp_iface] = info
+
+    if public_iface_data:
+        warnings.append(
+            f"Interfaces with VLAN {PUBLIC_VLAN_TAG} detected: "
+            f"{', '.join(sorted(public_iface_data.keys()))} — "
+            f"these will be placed in vsys 'Public'."
+        )
+
+    # ---- VLAN 5 remapping: replace old inter-VS link with new per-VS subinterface ----
+    # Only applies when the interface still carries the legacy 192.168.25.0/24 addressing.
+    _VLAN5_OLD_NET = ipaddress.IPv4Network('192.168.25.0/24')
+    vs_name = vs_data.get('vs_name', '')
+    vlan5_remap_info = VLAN5_REMAP.get(vs_name)
+    vlan5_cp_to_pan = {}   # {old_cp_iface: new_pan_iface} for route remapping
+
+    if vlan5_remap_info:
+        vlan5_entries = {}
+        for k, v in main_iface_data.items():
+            if '.' in k and k.split('.')[-1] == VLAN5_TAG:
+                ip_str = v.get('ip', '')
+                if ip_str:
+                    try:
+                        if ipaddress.IPv4Address(ip_str) in _VLAN5_OLD_NET:
+                            vlan5_entries[k] = v
+                    except ValueError:
+                        pass
+        if vlan5_entries:
+            for old_cp_iface in vlan5_entries:
+                del main_iface_data[old_cp_iface]
+                vlan5_cp_to_pan[old_cp_iface] = vlan5_remap_info['pan_iface']
+            # Add the remapped interface (PAN name as key so _map_interface passes it through)
+            main_iface_data[vlan5_remap_info['pan_iface']] = {
+                'ip':       vlan5_remap_info['ip'],
+                'mask_len': vlan5_remap_info['mask'],
+            }
+            warnings.append(
+                f"VLAN 5 interface(s) {', '.join(sorted(vlan5_entries.keys()))} "
+                f"remapped → {vlan5_remap_info['pan_iface']} "
+                f"({vlan5_remap_info['ip']}/{vlan5_remap_info['mask']})."
+            )
+
+    # ---- Write MAIN interfaces into shared <network><interface> ----
+    # (VLAN 520 interfaces are written centrally by build_panorama_xml)
+    ifaces_el = network_el.find('interface')
+    if ifaces_el is None:
+        ifaces_el = _sub(network_el, 'interface')
+
+    iface_count = 0
+    pan_to_units = {}  # {pan_base: [(vlan, ip, mask_len), ...]}
+    for cp_iface, info in main_iface_data.items():
         pan_iface = _map_interface(cp_iface, iface_map)
         dot_pos = pan_iface.find('.')
         if dot_pos != -1:
@@ -1104,16 +1283,29 @@ def _build_template(vs_data, iface_map, warnings):
             (vlan_id, info.get('ip', ''), info.get('mask_len', 24))
         )
 
-    # Write AE interfaces (only if any AE interfaces exist)
+    # Write AE interfaces
     ae_bases = [b for b in pan_to_units if b.startswith('ae')]
     if ae_bases:
-        ae_el = _sub(ifaces_el, 'aggregate-ethernet')
+        ae_el = ifaces_el.find('aggregate-ethernet')
+        if ae_el is None:
+            ae_el = _sub(ifaces_el, 'aggregate-ethernet')
         for pan_base in sorted(ae_bases):
             units = pan_to_units[pan_base]
-            ae_entry = ET.SubElement(ae_el, 'entry')
-            ae_entry.set('name', pan_base)
-            layer3_el = _sub(ae_entry, 'layer3')
-            units_el  = _sub(layer3_el, 'units')
+            # Find or create the base AE entry
+            ae_entry = None
+            for e in ae_el.findall('entry'):
+                if e.get('name') == pan_base:
+                    ae_entry = e
+                    break
+            if ae_entry is None:
+                ae_entry = ET.SubElement(ae_el, 'entry')
+                ae_entry.set('name', pan_base)
+            layer3_el = ae_entry.find('layer3')
+            if layer3_el is None:
+                layer3_el = _sub(ae_entry, 'layer3')
+            units_el = layer3_el.find('units')
+            if units_el is None:
+                units_el = _sub(layer3_el, 'units')
             for vlan_id, ip, ml in sorted(units, key=lambda x: (x[0] or '')):
                 if vlan_id:
                     unit_entry = ET.SubElement(units_el, 'entry')
@@ -1124,22 +1316,35 @@ def _build_template(vs_data, iface_map, warnings):
                         _entry(ipv4_el, f"{ip}/{ml}")
                     iface_count += 1
                 else:
-                    # No VLAN tag — direct IP on the AE interface itself
                     if ip:
-                        ipv4_el = _sub(layer3_el, 'ip')
+                        ipv4_el = layer3_el.find('ip')
+                        if ipv4_el is None:
+                            ipv4_el = _sub(layer3_el, 'ip')
                         _entry(ipv4_el, f"{ip}/{ml}")
                     iface_count += 1
 
-    # Write ethernet interfaces (only if any ethernet interfaces exist)
+    # Write ethernet interfaces
     eth_bases = [b for b in pan_to_units if b.startswith('ethernet')]
     if eth_bases:
-        eth_el = _sub(ifaces_el, 'ethernet')
+        eth_el = ifaces_el.find('ethernet')
+        if eth_el is None:
+            eth_el = _sub(ifaces_el, 'ethernet')
         for pan_base in sorted(eth_bases):
             units = pan_to_units[pan_base]
-            eth_entry = ET.SubElement(eth_el, 'entry')
-            eth_entry.set('name', pan_base)
-            layer3_el = _sub(eth_entry, 'layer3')
-            units_el  = _sub(layer3_el, 'units')
+            eth_entry = None
+            for e in eth_el.findall('entry'):
+                if e.get('name') == pan_base:
+                    eth_entry = e
+                    break
+            if eth_entry is None:
+                eth_entry = ET.SubElement(eth_el, 'entry')
+                eth_entry.set('name', pan_base)
+            layer3_el = eth_entry.find('layer3')
+            if layer3_el is None:
+                layer3_el = _sub(eth_entry, 'layer3')
+            units_el = layer3_el.find('units')
+            if units_el is None:
+                units_el = _sub(layer3_el, 'units')
             for vlan_id, ip, ml in sorted(units, key=lambda x: (x[0] or '')):
                 if vlan_id:
                     unit_entry = ET.SubElement(units_el, 'entry')
@@ -1151,16 +1356,16 @@ def _build_template(vs_data, iface_map, warnings):
                     iface_count += 1
                 else:
                     if ip:
-                        ipv4_el = _sub(layer3_el, 'ip')
+                        ipv4_el = layer3_el.find('ip')
+                        if ipv4_el is None:
+                            ipv4_el = _sub(layer3_el, 'ip')
                         _entry(ipv4_el, f"{ip}/{ml}")
                     iface_count += 1
 
-    # Write other interfaces (not ae/ethernet — e.g. internet1, LAN, Mgmt)
-    # These are written under <ethernet> as best-effort; user should remap via interface map.
+    # Write other interfaces (not ae/ethernet)
     other_bases = [b for b in pan_to_units
                    if not b.startswith('ae') and not b.startswith('ethernet')]
     if other_bases:
-        # Reuse existing eth_el if created above, otherwise create it now
         eth_other_el = ifaces_el.find('ethernet')
         if eth_other_el is None:
             eth_other_el = _sub(ifaces_el, 'ethernet')
@@ -1190,10 +1395,14 @@ def _build_template(vs_data, iface_map, warnings):
     vpn_tunnels = config.get('vpn_tunnels', [])
     tunnel_count = 0
     if vpn_tunnels:
-        tunnel_el = _sub(ifaces_el, 'tunnel')
-        tunnel_units_el = _sub(tunnel_el, 'units')
+        tunnel_el = ifaces_el.find('tunnel')
+        if tunnel_el is None:
+            tunnel_el = _sub(ifaces_el, 'tunnel')
+        tunnel_units_el = tunnel_el.find('units')
+        if tunnel_units_el is None:
+            tunnel_units_el = _sub(tunnel_el, 'units')
         for t in vpn_tunnels:
-            tid  = t['id']
+            tid    = t['id']
             tlocal = t['local']
             tentry = ET.SubElement(tunnel_units_el, 'entry')
             tentry.set('name', f"tunnel.{tid}")
@@ -1202,14 +1411,26 @@ def _build_template(vs_data, iface_map, warnings):
                 _entry(ipv4_el, f"{tlocal}/32")
             tunnel_count += 1
 
-    # ---- Virtual Router ----
-    vr_el   = _sub(network_el, 'virtual-router')
+    # ---- Partition routes: public vs main ----
+    public_cp_ifaces_set = set(public_iface_data.keys())
+    main_routes   = []
+    public_routes = []
+    for route in routes:
+        if route.get('interface', '') in public_cp_ifaces_set:
+            public_routes.append(route)
+        else:
+            main_routes.append(route)
+
+    # ---- Main Virtual Router ----
+    vr_el = network_el.find('virtual-router')
+    if vr_el is None:
+        vr_el = _sub(network_el, 'virtual-router')
+
     vr_entry = ET.SubElement(vr_el, 'entry')
     vr_entry.set('name', vr_name)
 
-    # Assign all interfaces (subinterfaces + tunnel interfaces) to this VR
     vr_iface_el = _sub(vr_entry, 'interface')
-    for cp_iface in iface_data:
+    for cp_iface in main_iface_data:
         pan_iface = _map_interface(cp_iface, iface_map)
         _member(vr_iface_el, pan_iface)
     for t in vpn_tunnels:
@@ -1219,13 +1440,26 @@ def _build_template(vs_data, iface_map, warnings):
     ip_el      = _sub(routing_el, 'ip')
     static_el  = _sub(ip_el, 'static-route')
 
-    for route in routes:
-        dest    = route.get('destination', '')
-        nexthop = route.get('nexthop', '')
-        cp_iface = route.get('interface', '')
-        pan_iface = _map_interface(cp_iface, iface_map) if cp_iface else ''
+    # Pre-compute VLAN 5 gateway (last usable IP of the new /29 subnet)
+    vlan5_gateway = None
+    if vlan5_remap_info:
+        _v5_net = ipaddress.IPv4Network(
+            f"{vlan5_remap_info['ip']}/{vlan5_remap_info['mask']}", strict=False
+        )
+        vlan5_gateway = str(_v5_net.broadcast_address - 1)
 
-        r_name = sanitize_name(f"route-{dest.replace('/', '-')}")
+    for route in main_routes:
+        dest     = route.get('destination', '')
+        nexthop  = route.get('nexthop', '')
+        cp_iface = route.get('interface', '')
+        # Use VLAN 5 remap if applicable, otherwise normal mapping
+        if cp_iface and cp_iface in vlan5_cp_to_pan:
+            pan_iface = vlan5_cp_to_pan[cp_iface]
+            nexthop   = vlan5_gateway   # point to last usable IP of new subnet
+        else:
+            pan_iface = _map_interface(cp_iface, iface_map) if cp_iface else ''
+
+        r_name  = sanitize_name(f"route-{dest.replace('/', '-')}")
         r_entry = ET.SubElement(static_el, 'entry')
         r_entry.set('name', r_name)
         _sub(r_entry, 'destination', dest)
@@ -1243,8 +1477,7 @@ def _build_template(vs_data, iface_map, warnings):
         if bgp_cfg.get('local_as'):
             _sub(bgp_el, 'local-as', str(bgp_cfg['local_as']))
 
-        # Group peers by remote-AS — each remote-AS becomes a peer-group
-        peer_groups = {}   # remote_as -> [peer_dict, ...]
+        peer_groups = {}
         for p in bgp_cfg.get('peers', []):
             peer_groups.setdefault(p['remote_as'], []).append(p)
 
@@ -1273,7 +1506,6 @@ def _build_template(vs_data, iface_map, warnings):
                         _sub(conn_el, 'keep-alive-interval', str(p['keepalive']))
                     if p.get('holdtime') is not None:
                         _sub(conn_el, 'hold-time', str(p['holdtime']))
-                    # Route-map comment — no direct PAN equivalent; note in description
                     notes = []
                     if p.get('import_map'):
                         notes.append(f"import:{p['import_map']}")
@@ -1291,19 +1523,35 @@ def _build_template(vs_data, iface_map, warnings):
 
     # ---- IKE crypto profiles + IPSec crypto profiles + Gateways + Tunnels ----
     if vpn_tunnels:
-        ike_el         = _sub(network_el, 'ike')
-        ike_crypto_el  = _sub(ike_el, 'crypto-profiles')
-        ike_profiles_el = _sub(ike_crypto_el, 'ike-crypto-profiles')
-        gateway_el     = _sub(ike_el, 'gateway')
+        ike_el = network_el.find('ike')
+        if ike_el is None:
+            ike_el = _sub(network_el, 'ike')
+        ike_crypto_el = ike_el.find('crypto-profiles')
+        if ike_crypto_el is None:
+            ike_crypto_el = _sub(ike_el, 'crypto-profiles')
+        ike_profiles_el = ike_crypto_el.find('ike-crypto-profiles')
+        if ike_profiles_el is None:
+            ike_profiles_el = _sub(ike_crypto_el, 'ike-crypto-profiles')
+        gateway_el = ike_el.find('gateway')
+        if gateway_el is None:
+            gateway_el = _sub(ike_el, 'gateway')
 
-        ipsec_el           = _sub(network_el, 'tunnel')
-        ipsec_crypto_el    = _sub(ipsec_el, 'crypto-profiles')
-        ipsec_profiles_el  = _sub(ipsec_crypto_el, 'ipsec-crypto-profiles')
-        ipsec_ipsec_el     = _sub(ipsec_el, 'ipsec')
+        ipsec_net_el = network_el.find('tunnel')
+        if ipsec_net_el is None:
+            ipsec_net_el = _sub(network_el, 'tunnel')
+        ipsec_crypto_el = ipsec_net_el.find('crypto-profiles')
+        if ipsec_crypto_el is None:
+            ipsec_crypto_el = _sub(ipsec_net_el, 'crypto-profiles')
+        ipsec_profiles_el = ipsec_crypto_el.find('ipsec-crypto-profiles')
+        if ipsec_profiles_el is None:
+            ipsec_profiles_el = _sub(ipsec_crypto_el, 'ipsec-crypto-profiles')
+        ipsec_ipsec_el = ipsec_net_el.find('ipsec')
+        if ipsec_ipsec_el is None:
+            ipsec_ipsec_el = _sub(ipsec_net_el, 'ipsec')
 
-        # Track crypto profiles already written (keyed by profile name)
-        written_ike_profiles  = set()
-        written_ipsec_profiles = set()
+        # Track already-written profiles (check existing entries)
+        written_ike_profiles = {e.get('name') for e in ike_profiles_el.findall('entry')}
+        written_ipsec_profiles = {e.get('name') for e in ipsec_profiles_el.findall('entry')}
 
         for t in vpn_tunnels:
             tid       = t['id']
@@ -1317,10 +1565,9 @@ def _build_template(vs_data, iface_map, warnings):
             p1        = t.get('p1', {})
             p2        = t.get('p2', {})
 
-            # Real IKE peer IP (from VPN community); fall back to tunnel remote IP
             ike_peer_ip = t.get('ike_peer_ip') or t['remote']
 
-            # ---- IKE crypto profile ----
+            # IKE crypto profile
             ike_profile_name = f"ike-{peer}"[:31]
             if ike_profile_name not in written_ike_profiles and p1:
                 ike_prof_entry = ET.SubElement(ike_profiles_el, 'entry')
@@ -1335,7 +1582,7 @@ def _build_template(vs_data, iface_map, warnings):
                 _sub(lt_el, 'seconds', str(p1.get('lifetime_sec', 86400)))
                 written_ike_profiles.add(ike_profile_name)
 
-            # ---- IPSec crypto profile ----
+            # IPSec crypto profile
             ipsec_profile_name = f"ipsec-{peer}"[:31]
             if ipsec_profile_name not in written_ipsec_profiles and p2:
                 ipsec_prof_entry = ET.SubElement(ipsec_profiles_el, 'entry')
@@ -1352,7 +1599,7 @@ def _build_template(vs_data, iface_map, warnings):
                     _sub(ipsec_prof_entry, 'dh-group', pfs_group)
                 written_ipsec_profiles.add(ipsec_profile_name)
 
-            # ---- IKE gateway ----
+            # IKE gateway
             gw_entry = ET.SubElement(gateway_el, 'entry')
             gw_entry.set('name', gw_name)
 
@@ -1361,7 +1608,7 @@ def _build_template(vs_data, iface_map, warnings):
             _sub(psk_el, 'key', psk)
 
             proto_el = _sub(gw_entry, 'protocol')
-            ver_el   = _sub(proto_el, ike_ver)   # <ikev1> or <ikev2>
+            ver_el   = _sub(proto_el, ike_ver)
             if p1:
                 _sub(ver_el, 'ike-crypto-profile', ike_profile_name)
             if ike_ver == 'ikev1':
@@ -1379,7 +1626,7 @@ def _build_template(vs_data, iface_map, warnings):
                     f"set manually on IKE gateway '{gw_name}'."
                 )
 
-            # ---- IPSec tunnel ----
+            # IPSec tunnel
             ipsec_entry = ET.SubElement(ipsec_ipsec_el, 'entry')
             ipsec_entry.set('name', ipsec_name)
             _sub(ipsec_entry, 'tunnel-interface', f"tunnel.{tid}")
@@ -1389,35 +1636,35 @@ def _build_template(vs_data, iface_map, warnings):
             if p2:
                 _sub(ak_el, 'ipsec-crypto-profile', ipsec_profile_name)
 
-    # ---- Zones + vsys import (one zone per interface, named after the CP interface) ----
-    # PAN-OS requires interfaces to be imported into a vsys before they can join a zone.
-    vsys_el    = _sub(dev_entry, 'vsys')
-    vsys_entry = _sub(vsys_el, 'entry')
-    vsys_entry.set('name', 'vsys1')
+    # ---- Main vsys entry (zones + interface imports) ----
+    vsys_entry = ET.SubElement(vsys_container, 'entry')
+    vsys_entry.set('name', target_vsys)
 
-    # import block — declares which interfaces belong to vsys1
-    import_el  = _sub(vsys_entry, 'import')
-    import_net = _sub(import_el, 'network')
+    _sub(vsys_entry, 'display-name', vs_data.get('vs_name', target_vsys))
+
+    import_el       = _sub(vsys_entry, 'import')
+    import_net      = _sub(import_el, 'network')
     import_iface_el = _sub(import_net, 'interface')
 
     zone_el = _sub(vsys_entry, 'zone')
 
-    for cp_iface in iface_data:
+    # Derive a short label from the vsys display-name for zone naming
+    vsys_label = sanitize_name(vs_data.get('vs_name', target_vsys))
+
+    for cp_iface in main_iface_data:
         pan_iface = _map_interface(cp_iface, iface_map)
-        # Import interface into vsys1
         _member(import_iface_el, pan_iface)
-        # Zone named after the CP interface (dots replaced with hyphens — PAN name constraint)
-        zone_name = cp_iface.replace('.', '-')
+        zone_name = _zone_name_for_iface(cp_iface, vsys_label)
         z_entry   = ET.SubElement(zone_el, 'entry')
         z_entry.set('name', zone_name)
         net_el    = _sub(z_entry, 'network')
         l3_el     = _sub(net_el, 'layer3')
         _member(l3_el, pan_iface)
 
-    # Tunnel interfaces
+    # Tunnel interfaces into main vsys
     for t in vpn_tunnels:
         tname     = f"tunnel.{t['id']}"
-        zone_name = f"vpn-{sanitize_name(t['peer'])}"
+        zone_name = f"{vsys_label}_vpn-{sanitize_name(t['peer'])}"
         _member(import_iface_el, tname)
         z_entry   = ET.SubElement(zone_el, 'entry')
         z_entry.set('name', zone_name)
@@ -1425,19 +1672,38 @@ def _build_template(vs_data, iface_map, warnings):
         l3_el     = _sub(net_el, 'layer3')
         _member(l3_el, tname)
 
-    return tmpl_entry, iface_count, tunnel_count
+    # Import main virtual-router into main vsys
+    import_vr_el = _sub(import_net, 'virtual-router')
+    _member(import_vr_el, vr_name)
+
+    # ---- Collect public data for centralized handling ----
+    public_subnets = set()
+    for info in public_iface_data.values():
+        ip = info.get('ip', '')
+        ml = info.get('mask_len', 24)
+        if ip:
+            try:
+                public_subnets.add(ipaddress.IPv4Network(f"{ip}/{ml}", strict=False))
+            except ValueError:
+                pass
+
+    return iface_count, tunnel_count, public_subnets, public_iface_data, public_routes
 
 
 # ---------------------------------------------------------------------------
 # Device Group builder
 # ---------------------------------------------------------------------------
 
-def _build_device_group(vs_data, iface_map, options, warnings):
+def _build_device_group(vs_data, iface_map, options, warnings, public_subnets=None):
     """
     Build a Panorama device-group ET.Element for the VS.
 
-    Returns ET.Element <entry name="DG-...">
-    along with counts for the report.
+    NAT rules and security rules that involve public IPs (VLAN 520 subnets)
+    are separated and returned for inclusion in the DG-Public device group.
+
+    Returns:
+        (dg_entry, obj_counts, sec_rule_count, nat_rule_count,
+         public_nat_entries, public_sec_entries, public_obj_uids)
     """
     dg_name  = vs_data['dg_name']
     vs_name  = vs_data['vs_name']
@@ -1547,7 +1813,10 @@ def _build_device_group(vs_data, iface_map, options, warnings):
     for _uid, _pan_name in all_addr_uids.items():
         resolver._cache[_uid] = _pan_name
 
-    # Build zone map from gateway_objects interface data for zone-based rule matching
+    # Build zone map from gateway_objects interface data for zone-based rule matching.
+    # VLAN 520 interfaces are excluded — they've been moved to the Public vsys, so
+    # zones like "VS-CLIENTES_520" don't exist in the main vsys.  UIDs that resolve
+    # to 520 IPs will fall back to 'any' in the main DG rules.
     gw_objs = pkg.get('gateway_objects', [])
     iface_data_for_zones = {}
     if gw_objs:
@@ -1555,19 +1824,128 @@ def _build_device_group(vs_data, iface_map, options, warnings):
             iname = gi.get('interface-name', '')
             ip    = gi.get('ipv4-address', '')
             ml    = gi.get('ipv4-mask-length', 24)
-            if iname and ip and not re.match(r'^vpnt\d+$', iname, re.IGNORECASE):
-                iface_data_for_zones[iname] = {'ip': ip, 'mask_len': int(ml)}
-    zone_map = _build_zone_map(iface_data_for_zones, iface_map)
+            if not (iname and ip):
+                continue
+            if re.match(r'^vpnt\d+$', iname, re.IGNORECASE):
+                continue
+            # Skip VLAN 520 interfaces — they live in the Public vsys
+            if '.' in iname and iname.split('.')[-1] == PUBLIC_VLAN_TAG:
+                continue
+            iface_data_for_zones[iname] = {'ip': ip, 'mask_len': int(ml)}
+    # Apply VLAN 5 remapping to zone data so zone names match the template
+    # Only when the interface carries the legacy 192.168.25.0/24 addressing
+    _VLAN5_OLD_NET = ipaddress.IPv4Network('192.168.25.0/24')
+    vlan5_remap_info = VLAN5_REMAP.get(vs_name)
+    if vlan5_remap_info:
+        vlan5_zone_entries = {}
+        for k, v in iface_data_for_zones.items():
+            if '.' in k and k.split('.')[-1] == VLAN5_TAG:
+                ip_str = v.get('ip', '')
+                if ip_str:
+                    try:
+                        if ipaddress.IPv4Address(ip_str) in _VLAN5_OLD_NET:
+                            vlan5_zone_entries[k] = v
+                    except ValueError:
+                        pass
+        for old_cp in vlan5_zone_entries:
+            del iface_data_for_zones[old_cp]
+        if vlan5_zone_entries:
+            iface_data_for_zones[vlan5_remap_info['pan_iface']] = {
+                'ip':       vlan5_remap_info['ip'],
+                'mask_len': vlan5_remap_info['mask'],
+            }
 
-    # Build security rules
+    vsys_label = sanitize_name(vs_name)
+    zone_map = _build_zone_map(iface_data_for_zones, iface_map, vsys_label=vsys_label)
+
+    # Build security rules (all go to main DG)
     sec_entries, used_tags = _build_security_rules(security_rules_raw, resolver, used_rule_names,
                                                    warnings, zone_map=zone_map)
     for entry in sec_entries:
         sec_rules_el.append(entry)
 
-    nat_entries = _build_nat_rules(nat_rules_raw, resolver, set(), warnings, zone_map=zone_map)
+    # ---- Split security rules that involve public IPs → copy to DG-Public ----
+    public_sec_raw = []
+    if public_subnets:
+        for item in security_rules_raw:
+            if (item.get('type') == 'access-rule'
+                    and item.get('enabled', True)
+                    and _sec_rule_involves_public(item, uid_map, public_subnets)):
+                public_sec_raw.append(item)
+
+    public_sec_entries = []
+    if public_sec_raw:
+        public_sec_entries, _ = _build_security_rules(
+            public_sec_raw, resolver, set(), warnings, zone_map=zone_map
+        )
+        # Rewrite zones: Public vsys only has the PUBLIC_ZONE_NAME zone, so each
+        # rule's from/to must map to either PUBLIC_ZONE_NAME (if that side involves
+        # 520 IPs) or 'any' (for the other side).
+        for entry, raw in zip(public_sec_entries, public_sec_raw):
+            src_is_pub = _uids_match_subnets(raw.get('source', []), uid_map, public_subnets)
+            dst_is_pub = _uids_match_subnets(raw.get('destination', []), uid_map, public_subnets)
+            _rewrite_rule_zone(entry, 'from', PUBLIC_ZONE_NAME if src_is_pub else 'any')
+            _rewrite_rule_zone(entry, 'to',   PUBLIC_ZONE_NAME if dst_is_pub else 'any')
+        warnings.append(
+            f"{len(public_sec_entries)} security rule(s) involving VLAN 520 IPs "
+            f"copied to DG-Public for inter-vsys traffic."
+        )
+
+    # ---- Split NAT rules: public (VLAN 520) vs main ----
+    if public_subnets:
+        main_nat_raw   = []
+        public_nat_raw = []
+        for item in nat_rules_raw:
+            if item.get('type') == 'nat-rule' and _nat_rule_involves_public(item, uid_map, public_subnets):
+                public_nat_raw.append(item)
+            else:
+                main_nat_raw.append(item)
+    else:
+        main_nat_raw   = nat_rules_raw
+        public_nat_raw = []
+
+    # Build main NAT rules
+    nat_entries = _build_nat_rules(main_nat_raw, resolver, set(), warnings, zone_map=zone_map)
     for entry in nat_entries:
         nat_rules_el.append(entry)
+
+    # Build public NAT rules (returned to caller for DG-Public)
+    public_nat_entries = _build_nat_rules(public_nat_raw, resolver, set(), warnings, zone_map=zone_map)
+    # Rewrite zones for Public vsys (same reason as security rules above)
+    for entry, raw in zip(public_nat_entries, public_nat_raw):
+        src_uid = raw.get('original-source', '')
+        dst_uid = raw.get('original-destination', '')
+        src_is_pub = bool(src_uid) and _uids_match_subnets([src_uid], uid_map, public_subnets)
+        dst_is_pub = bool(dst_uid) and _uids_match_subnets([dst_uid], uid_map, public_subnets)
+        _rewrite_rule_zone(entry, 'from', PUBLIC_ZONE_NAME if src_is_pub else 'any')
+        _rewrite_rule_zone(entry, 'to',   PUBLIC_ZONE_NAME if dst_is_pub else 'any')
+
+    # Collect UIDs referenced by public NAT + security rules (objects to copy to DG-Public)
+    public_obj_uids = set()
+    for item in public_nat_raw:
+        if item.get('type') != 'nat-rule':
+            continue
+        for field in ('original-source', 'original-destination', 'original-service',
+                      'translated-source', 'translated-destination', 'translated-service'):
+            uid = item.get(field, '')
+            if uid and uid != 'original' and not resolver.is_any(uid):
+                public_obj_uids.add(uid)
+    for item in public_sec_raw:
+        for field in ('source', 'destination', 'service'):
+            for uid in item.get(field, []):
+                if uid and not resolver.is_any(uid):
+                    public_obj_uids.add(uid)
+    # Expand groups
+    for u in list(public_obj_uids):
+        obj = uid_map.get(u)
+        if obj and obj.get('type') in ('group', 'service-group'):
+            for m in obj.get('members', []):
+                public_obj_uids.add(m)
+
+    if public_nat_raw:
+        warnings.append(
+            f"{len(public_nat_raw)} NAT rule(s) involving VLAN 520 IPs moved to DG-Public."
+        )
 
     # Create tag objects for section tags (must exist in DG for Panorama to accept rule references)
     if used_tags:
@@ -1587,21 +1965,27 @@ def _build_device_group(vs_data, iface_map, options, warnings):
         'service-group': len(grp_svc_entries),
     }
 
-    return dg_entry, obj_counts, len(sec_entries), len(nat_entries)
+    return (dg_entry, obj_counts, len(sec_entries), len(nat_entries),
+            public_nat_entries, public_sec_entries, public_obj_uids)
 
 
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
 
-def build_panorama_xml(vs_data_list, existing_xml_str=None, interface_map=None, options=None):
+def build_panorama_xml(vs_data_list, existing_xml_str=None, interface_map=None,
+                       template_name=None, options=None):
     """
     Build a complete Panorama XML from a list of parsed VS data dicts.
+
+    Creates a SINGLE template with all network config (interfaces, VR, VPN)
+    and one vsys per VS (named by the user via target_vsys).
 
     Args:
         vs_data_list:    list of dicts from cp_parser.parse_vs()
         existing_xml_str: string of existing Panorama XML to merge into (or None)
         interface_map:   {cp_prefix: pan_prefix} override (or None for defaults)
+        template_name:   name for the single Panorama template (default 'Tmpl-Migration')
         options:         dict of conversion options:
                            'only_referenced_objects': bool (default False)
                            'prefix_object_names': bool (default False)
@@ -1611,6 +1995,8 @@ def build_panorama_xml(vs_data_list, existing_xml_str=None, interface_map=None, 
     """
     if interface_map is None:
         interface_map = dict(DEFAULT_INTERFACE_MAP)
+    if template_name is None:
+        template_name = 'Tmpl-Migration'
     if options is None:
         options = {}
 
@@ -1660,14 +2046,97 @@ def build_panorama_xml(vs_data_list, existing_xml_str=None, interface_map=None, 
         dg_container   = ET.SubElement(dev_entry, 'device-group')
         tmpl_container = ET.SubElement(dev_entry, 'template')
 
-    # Build set of existing DG / template names
-    existing_dg_names   = {e.get('name', '') for e in dg_container.findall('entry')}
-    existing_tmpl_names = {e.get('name', '') for e in tmpl_container.findall('entry')}
+    # Build set of existing DG names
+    existing_dg_names = {e.get('name', '') for e in dg_container.findall('entry')}
 
+    # ---- Single template: find or create ----
+    tmpl_entry = None
+    for e in tmpl_container.findall('entry'):
+        if e.get('name') == template_name:
+            tmpl_entry = e
+            break
+    if tmpl_entry is None:
+        tmpl_entry = ET.SubElement(tmpl_container, 'entry')
+        tmpl_entry.set('name', template_name)
+
+    # ---- Associate template with existing template-stack(s) ----
+    # template-stack is a sibling of <template> and <device-group> under the
+    # same <devices><entry name="localhost.localdomain">.
+    # ElementTree has no parent navigation, so search for the right entry.
+    template_stack_serials = []  # firewall serials to bind new DGs to
+    for _de in root.findall('.//devices/entry'):
+        ts_container_local = _de.find('template-stack')
+        if ts_container_local is None or _de.find('template') is None:
+            continue
+        for ts_entry in ts_container_local.findall('entry'):
+            ts_devices = ts_entry.find('devices')
+            if ts_devices is None or len(ts_devices) == 0:
+                continue
+            for dev in ts_devices.findall('entry'):
+                sn = dev.get('name', '')
+                if sn and sn not in template_stack_serials:
+                    template_stack_serials.append(sn)
+            templates_el = ts_entry.find('templates')
+            if templates_el is None:
+                templates_el = _sub(ts_entry, 'templates')
+            already = any(m.text == template_name
+                          for m in templates_el.findall('member'))
+            if not already:
+                _member(templates_el, template_name)
+                log.info("Template '%s' added to template-stack '%s'.",
+                         template_name, ts_entry.get('name'))
+
+    # Navigate to template internals
+    config_el = tmpl_entry.find('config')
+    if config_el is None:
+        config_el = _sub(tmpl_entry, 'config')
+    devices_tmpl_el = config_el.find('devices')
+    if devices_tmpl_el is None:
+        devices_tmpl_el = _sub(config_el, 'devices')
+    dev_tmpl_entry = devices_tmpl_el.find('entry')
+    if dev_tmpl_entry is None:
+        dev_tmpl_entry = _sub(devices_tmpl_el, 'entry')
+        dev_tmpl_entry.set('name', 'localhost.localdomain')
+
+    network_el = dev_tmpl_entry.find('network')
+    if network_el is None:
+        network_el = _sub(dev_tmpl_entry, 'network')
+
+    vsys_container = dev_tmpl_entry.find('vsys')
+    if vsys_container is None:
+        vsys_container = _sub(dev_tmpl_entry, 'vsys')
+
+    # ---- Accumulators for the centralized "Public" vsys + DG ----
+    # All VLAN 520 data from every VS is collected here, then written once at the end.
+    all_public_iface_data = {}     # {cp_iface: {ip, mask_len}} — accumulated across VS
+    all_public_routes     = []     # routes for the single VR-Public
+    all_public_nat_entries  = []   # NAT rule XML elements for DG-Public
+    all_public_sec_entries  = []   # Security rule XML elements for DG-Public
+    all_public_obj_uids     = set()  # UIDs of objects to copy to DG-Public
+    all_public_dg_entries   = []   # (dg_entry, public_obj_uids) per VS for object cloning
+
+    dg_public = None
+    dg_public_written_objs = set()
+    new_dg_to_vsys = []  # list of (dg_entry, vsys_name) for final device binding
+
+    def _ensure_dg_public():
+        """Find or create DG-Public and its child containers."""
+        nonlocal dg_public
+        if dg_public is not None:
+            return dg_public
+        for e in dg_container.findall('entry'):
+            if e.get('name') == 'DG-Public':
+                dg_public = e
+                return dg_public
+        dg_public = ET.SubElement(dg_container, 'entry')
+        dg_public.set('name', 'DG-Public')
+        return dg_public
+
+    # ---- Process each VS ----
     for vs_data in vs_data_list:
-        vs_name   = vs_data.get('vs_name', '?')
-        dg_name   = vs_data.get('dg_name', f'DG-{vs_name}')
-        tmpl_name = vs_data.get('tmpl_name', f'Tmpl-{vs_name}')
+        vs_name      = vs_data.get('vs_name', '?')
+        dg_name      = vs_data.get('dg_name', f'DG-{vs_name}')
+        target_vsys  = vs_data.get('target_vsys', 'vsys1')
 
         vs_warnings = list(vs_data.get('warnings', []))
         vs_errors   = list(vs_data.get('errors', []))
@@ -1679,37 +2148,57 @@ def build_panorama_xml(vs_data_list, existing_xml_str=None, interface_map=None, 
             )
             skipped = True
 
-        obj_counts   = {}
+        obj_counts     = {}
         sec_rule_count = 0
         nat_rule_count = 0
         iface_count    = 0
         tunnel_count   = 0
+        public_subnets = set()
 
         if not skipped:
+            # Build network config first (to get public data for DG split)
             try:
-                dg_entry, obj_counts, sec_rule_count, nat_rule_count = _build_device_group(
-                    vs_data, interface_map, options, vs_warnings
+                (iface_count, tunnel_count, public_subnets,
+                 vs_public_iface_data, vs_public_routes) = _build_template_vsys(
+                    vs_data, interface_map, network_el, vsys_container,
+                    target_vsys, vs_warnings
+                )
+                # Accumulate public data for centralized handling
+                all_public_iface_data.update(vs_public_iface_data)
+                all_public_routes.extend(vs_public_routes)
+            except Exception as exc:
+                vs_errors.append(f"Template/vsys build failed: {exc}")
+                log.exception("Template build error for %s", vs_name)
+                public_subnets = set()
+
+            # Build Device Group (policies + objects), splitting public rules
+            try:
+                (dg_entry, obj_counts, sec_rule_count, nat_rule_count,
+                 public_nat_entries, public_sec_entries,
+                 public_obj_uids) = _build_device_group(
+                    vs_data, interface_map, options, vs_warnings,
+                    public_subnets=public_subnets
                 )
                 dg_container.append(dg_entry)
                 existing_dg_names.add(dg_name)
+                new_dg_to_vsys.append((dg_entry, target_vsys))
+
+                # Accumulate public rules and object refs
+                all_public_nat_entries.extend(public_nat_entries)
+                all_public_sec_entries.extend(public_sec_entries)
+                if public_obj_uids:
+                    all_public_dg_entries.append((dg_entry, public_obj_uids, vs_data.get('uid_map', {})))
+                    all_public_obj_uids |= public_obj_uids
+
             except Exception as exc:
                 vs_errors.append(f"Device group build failed: {exc}")
                 log.exception("DG build error for %s", vs_name)
 
-            try:
-                tmpl_entry, iface_count, tunnel_count = _build_template(
-                    vs_data, interface_map, vs_warnings
-                )
-                tmpl_container.append(tmpl_entry)
-                existing_tmpl_names.add(tmpl_name)
-            except Exception as exc:
-                vs_errors.append(f"Template build failed: {exc}")
-                log.exception("Template build error for %s", vs_name)
-
         report.append({
             'vs_name':           vs_name,
             'dg_name':           dg_name,
-            'tmpl_name':         tmpl_name,
+            'tmpl_name':         template_name,
+            'target_vsys':       target_vsys,
             'objects_converted': obj_counts,
             'rules_converted':   {'security': sec_rule_count, 'nat': nat_rule_count},
             'vpn_tunnels':       tunnel_count,
@@ -1717,7 +2206,319 @@ def build_panorama_xml(vs_data_list, existing_xml_str=None, interface_map=None, 
             'warnings':          vs_warnings,
             'errors':            vs_errors,
             'skipped':           skipped,
+            'public_nat_rules':  len(all_public_nat_entries),
+            'public_sec_rules':  len(all_public_sec_entries),
         })
+
+    # ---- Build centralized Public VR + vsys + DG (after all VS are processed) ----
+    if all_public_iface_data:
+        PUBLIC_VR_NAME = 'VR-Public'
+
+        # --- Consolidate all 520 IPs onto a SINGLE subinterface ---
+        # Pick the first 520 interface as the canonical one; all other IPs
+        # are added as secondary addresses on that same subinterface.
+        first_cp_iface = sorted(all_public_iface_data.keys())[0]
+        canonical_pan_iface = _map_interface(first_cp_iface, interface_map)
+        # Derive base + vlan from canonical (e.g. "ae1.520" → base="ae1", vlan="520")
+        dot_pos = canonical_pan_iface.find('.')
+        if dot_pos != -1:
+            canonical_base = canonical_pan_iface[:dot_pos]
+            canonical_vlan = canonical_pan_iface[dot_pos+1:]
+        else:
+            canonical_base = canonical_pan_iface
+            canonical_vlan = '520'
+        canonical_subif = f"{canonical_base}.{canonical_vlan}"
+
+        # Collect all IPs from all 520 interfaces
+        public_ips = []  # [(ip, mask_len), ...]
+        for cp_iface in sorted(all_public_iface_data.keys()):
+            info = all_public_iface_data[cp_iface]
+            ip = info.get('ip', '')
+            ml = info.get('mask_len', 24)
+            if ip:
+                public_ips.append((ip, ml))
+
+        # --- Write the single consolidated 520 subinterface ---
+        ifaces_el = network_el.find('interface')
+        if ifaces_el is None:
+            ifaces_el = _sub(network_el, 'interface')
+
+        # Determine interface type (ae vs ethernet)
+        if canonical_base.startswith('ae'):
+            type_tag = 'aggregate-ethernet'
+        else:
+            type_tag = 'ethernet'
+
+        type_el = ifaces_el.find(type_tag)
+        if type_el is None:
+            type_el = _sub(ifaces_el, type_tag)
+
+        # Find or create the base interface entry
+        base_entry = None
+        for e in type_el.findall('entry'):
+            if e.get('name') == canonical_base:
+                base_entry = e
+                break
+        if base_entry is None:
+            base_entry = ET.SubElement(type_el, 'entry')
+            base_entry.set('name', canonical_base)
+
+        layer3_el = base_entry.find('layer3')
+        if layer3_el is None:
+            layer3_el = _sub(base_entry, 'layer3')
+        units_el = layer3_el.find('units')
+        if units_el is None:
+            units_el = _sub(layer3_el, 'units')
+
+        # Create the single subinterface with ALL IPs
+        unit_entry = ET.SubElement(units_el, 'entry')
+        unit_entry.set('name', canonical_subif)
+        _sub(unit_entry, 'tag', canonical_vlan)
+        ipv4_el = _sub(unit_entry, 'ip')
+        for ip, ml in public_ips:
+            _entry(ipv4_el, f"{ip}/{ml}")
+
+        # --- Public Virtual Router (single, one interface, all routes) ---
+        vr_el = network_el.find('virtual-router')
+        if vr_el is None:
+            vr_el = _sub(network_el, 'virtual-router')
+
+        public_vr_entry = ET.SubElement(vr_el, 'entry')
+        public_vr_entry.set('name', PUBLIC_VR_NAME)
+
+        pub_vr_iface_el = _sub(public_vr_entry, 'interface')
+        _member(pub_vr_iface_el, canonical_subif)
+
+        pub_routing_el = _sub(public_vr_entry, 'routing-table')
+        pub_ip_el      = _sub(pub_routing_el, 'ip')
+        pub_static_el  = _sub(pub_ip_el, 'static-route')
+
+        used_route_names = set()
+        for route in all_public_routes:
+            dest    = route.get('destination', '')
+            nexthop = route.get('nexthop', '')
+
+            r_name = unique_name(
+                sanitize_name(f"route-{dest.replace('/', '-')}"),
+                used_route_names
+            )
+            r_entry = ET.SubElement(pub_static_el, 'entry')
+            r_entry.set('name', r_name)
+            _sub(r_entry, 'destination', dest)
+            nh_el = _sub(r_entry, 'nexthop')
+            _sub(nh_el, 'ip-address', nexthop)
+            # All routes point to the single consolidated interface
+            _sub(r_entry, 'interface', canonical_subif)
+
+        # --- Public vsys (single interface, single zone) ---
+        public_vsys = ET.SubElement(vsys_container, 'entry')
+        public_vsys.set('name', 'Public')
+        _sub(public_vsys, 'display-name', 'Public')
+
+        pub_import_el    = _sub(public_vsys, 'import')
+        pub_import_net   = _sub(pub_import_el, 'network')
+        pub_import_iface = _sub(pub_import_net, 'interface')
+        _member(pub_import_iface, canonical_subif)
+
+        pub_zone_el = _sub(public_vsys, 'zone')
+        pub_zone_name = f"Public_{canonical_vlan}"
+        z_entry = ET.SubElement(pub_zone_el, 'entry')
+        z_entry.set('name', pub_zone_name)
+        net_el = _sub(z_entry, 'network')
+        l3_el  = _sub(net_el, 'layer3')
+        _member(l3_el, canonical_subif)
+
+        pub_import_vr = _sub(pub_import_net, 'virtual-router')
+        _member(pub_import_vr, PUBLIC_VR_NAME)
+
+        # --- DG-Public (NAT + security rules + referenced objects) ---
+        _ensure_dg_public()
+
+        # Address / service / group containers
+        pub_addr_el    = dg_public.find('address')
+        if pub_addr_el is None:
+            pub_addr_el = _sub(dg_public, 'address')
+        pub_addrgrp_el = dg_public.find('address-group')
+        if pub_addrgrp_el is None:
+            pub_addrgrp_el = _sub(dg_public, 'address-group')
+        pub_svc_el     = dg_public.find('service')
+        if pub_svc_el is None:
+            pub_svc_el = _sub(dg_public, 'service')
+        pub_svcgrp_el  = dg_public.find('service-group')
+        if pub_svcgrp_el is None:
+            pub_svcgrp_el = _sub(dg_public, 'service-group')
+
+        # Pre-rulebase with NAT + security
+        pre_rules = dg_public.find('pre-rulebase')
+        if pre_rules is None:
+            pre_rules = _sub(dg_public, 'pre-rulebase')
+
+        # NAT rules
+        nat_pre = pre_rules.find('nat')
+        if nat_pre is None:
+            nat_pre = _sub(pre_rules, 'nat')
+        nat_rules_pub_el = nat_pre.find('rules')
+        if nat_rules_pub_el is None:
+            nat_rules_pub_el = _sub(nat_pre, 'rules')
+        for el in all_public_nat_entries:
+            nat_rules_pub_el.append(el)
+
+        # Security rules
+        sec_pre = pre_rules.find('security')
+        if sec_pre is None:
+            sec_pre = _sub(pre_rules, 'security')
+        sec_rules_pub_el = sec_pre.find('rules')
+        if sec_rules_pub_el is None:
+            sec_rules_pub_el = _sub(sec_pre, 'rules')
+        for el in all_public_sec_entries:
+            sec_rules_pub_el.append(el)
+
+        # Copy referenced objects from each VS's DG to DG-Public
+        obj_type_map = {
+            'host': ('address', pub_addr_el),
+            'network': ('address', pub_addr_el),
+            'address-range': ('address', pub_addr_el),
+            'dns-domain': ('address', pub_addr_el),
+            'updatable-object': ('address', pub_addr_el),
+            'group': ('address-group', pub_addrgrp_el),
+            'service-tcp': ('service', pub_svc_el),
+            'service-udp': ('service', pub_svc_el),
+            'service-group': ('service-group', pub_svcgrp_el),
+        }
+
+        for dg_entry_ref, pub_uids, uid_map_ref in all_public_dg_entries:
+            for obj_uid in pub_uids:
+                obj = uid_map_ref.get(obj_uid)
+                if obj is None:
+                    continue
+                obj_type = obj.get('type', '')
+                mapping = obj_type_map.get(obj_type)
+                if mapping is None:
+                    continue
+                source_tag, target_container = mapping
+                source_container = dg_entry_ref.find(source_tag)
+                if source_container is None:
+                    continue
+                base_name = sanitize_name(obj.get('name', ''))
+                for entry_el in source_container.findall('entry'):
+                    entry_name = entry_el.get('name', '')
+                    if (entry_name == base_name
+                            or entry_name.startswith(base_name + '_')):
+                        if entry_name not in dg_public_written_objs:
+                            target_container.append(copy.deepcopy(entry_el))
+                            dg_public_written_objs.add(entry_name)
+                        break
+
+        log.info("DG-Public: %d NAT rules, %d security rules, %d objects",
+                 len(all_public_nat_entries), len(all_public_sec_entries),
+                 len(dg_public_written_objs))
+
+        if dg_public is not None:
+            new_dg_to_vsys.append((dg_public, 'Public'))
+
+    # ---- Bind each new DG to the firewalls from the template-stack ----
+    # Without this, Panorama cannot resolve zones for rules in the DG and
+    # displays destination/source zone as "none" in the UI.
+    if template_stack_serials and new_dg_to_vsys:
+        for dg_entry, vsys_name in new_dg_to_vsys:
+            devs_el = dg_entry.find('devices')
+            if devs_el is None:
+                devs_el = _sub(dg_entry, 'devices')
+            existing_serials = {e.get('name') for e in devs_el.findall('entry')}
+            for sn in template_stack_serials:
+                if sn in existing_serials:
+                    continue
+                fw_entry = ET.SubElement(devs_el, 'entry')
+                fw_entry.set('name', sn)
+                vsys_container_el = _sub(fw_entry, 'vsys')
+                vsys_bind = ET.SubElement(vsys_container_el, 'entry')
+                vsys_bind.set('name', vsys_name)
+            log.info("DG %r bound to %d firewall(s) with vsys %r.",
+                     dg_entry.get('name'), len(template_stack_serials), vsys_name)
+
+    # ---- NAT rules: expand <to> 'any' to all zones of the target vsys ----
+    # PAN-OS rejects NAT rules with 'any' as destination zone — a specific zone
+    # (or list of zones) must be declared.  For each new DG we know the bound
+    # vsys, so we collect that vsys's zone names from the template and use them
+    # as the NAT destination zone whenever the rule would otherwise say 'any'.
+    vsys_zone_map = {}  # {vsys_name: [zone_names]}
+    for vsys_e in vsys_container.findall('entry'):
+        vn = vsys_e.get('name')
+        zones = [z.get('name') for z in vsys_e.findall('zone/entry') if z.get('name')]
+        if vn and zones:
+            vsys_zone_map[vn] = zones
+
+    for dg_entry, vsys_name in new_dg_to_vsys:
+        zones = vsys_zone_map.get(vsys_name, [])
+        if not zones:
+            continue
+        for nat_rule in dg_entry.findall('.//pre-rulebase/nat/rules/entry'):
+            to_el = nat_rule.find('to')
+            if to_el is None:
+                to_el = _sub(nat_rule, 'to')
+            members = [(m.text or '').strip() for m in to_el.findall('member')]
+            has_specific = any(m and m.lower() != 'any' for m in members)
+            if has_specific:
+                # Strip any stray 'any' that snuck in alongside specific zones
+                for m in list(to_el):
+                    if (m.text or '').strip().lower() == 'any':
+                        to_el.remove(m)
+            else:
+                # Only 'any' (or empty) — expand to all vsys zones
+                for child in list(to_el):
+                    to_el.remove(child)
+                for z in zones:
+                    _member(to_el, z)
+
+    # ---- Final validation: ensure every NAT rule has <service> ----
+    for dg_el in dg_container.findall('entry'):
+        for nat_rule in dg_el.findall('.//pre-rulebase/nat/rules/entry'):
+            if nat_rule.find('service') is None:
+                _sub(nat_rule, 'service', 'any')
+                log.warning("NAT rule %r in %s was missing <service> — added 'any'.",
+                            nat_rule.get('name'), dg_el.get('name'))
+
+    # ---- Final validation: ensure every NAT rule has valid <from>/<to> zones ----
+    for dg_el in dg_container.findall('entry'):
+        for nat_rule in dg_el.findall('.//pre-rulebase/nat/rules/entry'):
+            for field in ('from', 'to'):
+                el = nat_rule.find(field)
+                if el is None:
+                    el = _sub(nat_rule, field)
+                for m in list(el):
+                    txt = (m.text or '').strip()
+                    if txt == '' or txt.lower() == 'none':
+                        el.remove(m)
+                if len(el) == 0:
+                    _member(el, 'any')
+                    log.warning("NAT rule %r in %s had invalid <%s> — replaced with 'any'.",
+                                nat_rule.get('name'), dg_el.get('name'), field)
+
+    # ---- Final validation: ensure every security rule has non-empty source/destination ----
+    for dg_el in dg_container.findall('entry'):
+        for sec_rule in dg_el.findall('.//pre-rulebase/security/rules/entry'):
+            for field in ('source', 'destination'):
+                el = sec_rule.find(field)
+                if el is not None and len(el) == 0:
+                    _member(el, 'any')
+                    log.warning("Security rule %r in %s had empty <%s> — added 'any'.",
+                                sec_rule.get('name'), dg_el.get('name'), field)
+
+    # ---- Final validation: ensure every security rule has valid <from>/<to> zones ----
+    for dg_el in dg_container.findall('entry'):
+        for sec_rule in dg_el.findall('.//pre-rulebase/security/rules/entry'):
+            for field in ('from', 'to'):
+                el = sec_rule.find(field)
+                if el is None:
+                    el = _sub(sec_rule, field)
+                for m in list(el):
+                    txt = (m.text or '').strip()
+                    if txt == '' or txt.lower() == 'none':
+                        el.remove(m)
+                if len(el) == 0:
+                    _member(el, 'any')
+                    log.warning("Security rule %r in %s had invalid <%s> — replaced with 'any'.",
+                                sec_rule.get('name'), dg_el.get('name'), field)
 
     # ---- Serialize to pretty XML ----
     try:
